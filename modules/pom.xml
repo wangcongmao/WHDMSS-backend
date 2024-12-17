@@ -19,6 +19,7 @@
 		<module>static</module>
 		<module>test</module>
 		<module>dataservice</module>
+		<module>test1</module>
 	</modules>
 	
 	<developers>
