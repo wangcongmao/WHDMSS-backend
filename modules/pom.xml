@@ -18,6 +18,7 @@
 		<module>cms</module>
 		<module>static</module>
 		<module>test</module>
+		<module>dataservice</module>
 	</modules>
 	
 	<developers>
