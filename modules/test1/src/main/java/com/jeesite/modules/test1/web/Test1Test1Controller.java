@@ -23,7 +23,7 @@ import com.jeesite.modules.test1.service.Test1Test1Service;
 /**
  * test1Controller
  * @author wangcm
- * @version 2024-12-17
+ * @version 2024-12-18
  */
 @Controller
 @RequestMapping(value = "${adminPath}/test1/test1")

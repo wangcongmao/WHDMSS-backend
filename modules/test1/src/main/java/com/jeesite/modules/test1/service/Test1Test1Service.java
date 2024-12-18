@@ -12,7 +12,7 @@ import com.jeesite.modules.test1.dao.Test1Test1Dao;
 /**
  * test1Service
  * @author wangcm
- * @version 2024-12-17
+ * @version 2024-12-18
  */
 @Service
 public class Test1Test1Service extends CrudService<Test1Test1Dao, Test1Test1> {

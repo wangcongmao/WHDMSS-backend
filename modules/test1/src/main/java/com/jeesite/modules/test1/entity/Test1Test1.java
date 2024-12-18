@@ -10,7 +10,7 @@ import com.jeesite.common.mybatis.mapper.query.QueryType;
 /**
  * test1Entity
  * @author wangcm
- * @version 2024-12-17
+ * @version 2024-12-18
  */
 @Table(name="test1_test1", alias="a", label="test1信息", columns={
 		@Column(name="id", attrName="id", label="主键", isPK=true),
