@@ -18,8 +18,8 @@
 		<module>cms</module>
 		<module>static</module>
 		<module>test</module>
-		<module>dataservice</module>
 		<module>test1</module>
+		<module>dataservice</module>
 	</modules>
 	
 	<developers>

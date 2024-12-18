@@ -1,4 +1,4 @@
-package com.jeesite.modules.experiment.service;
+package com.jeesite.modules.dataservice.service;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.service.CrudService;
-import com.jeesite.modules.experiment.entity.DataserviceExperiment;
-import com.jeesite.modules.experiment.dao.DataserviceExperimentDao;
+import com.jeesite.modules.dataservice.entity.DataserviceExperiment;
+import com.jeesite.modules.dataservice.dao.DataserviceExperimentDao;
 
 /**
- * 试验信息表Service
+ * experimentInfoService
  * @author wangcm
- * @version 2024-12-16
+ * @version 2024-12-18
  */
 @Service
 public class DataserviceExperimentService extends CrudService<DataserviceExperimentDao, DataserviceExperiment> {

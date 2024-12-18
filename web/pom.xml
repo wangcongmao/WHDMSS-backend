@@ -73,6 +73,13 @@
 			<version>5.9.2-SNAPSHOT</version>
 		</dependency>
 
+		<!-- 数据管理与服务系统 -->
+		<dependency>
+			<groupId>com.jeesite</groupId>
+			<artifactId>jeesite-module-dataservice</artifactId>
+			<version>5.9.2-SNAPSHOT</version>
+		</dependency>
+
 		<!-- 内容管理-页面静态化（标准版）
 		<dependency>
 			<groupId>com.jeesite</groupId>

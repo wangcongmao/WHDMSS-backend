@@ -1,32 +1,34 @@
-package com.jeesite.modules.experiment.web;
+package com.jeesite.modules.dataservice.web;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import io.swagger.annotations.Api;
+import com.jeesite.modules.sys.entity.User;
+import com.jeesite.modules.sys.utils.UserUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesite.common.config.Global;
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.web.BaseController;
-import com.jeesite.modules.experiment.entity.DataserviceExperiment;
-import com.jeesite.modules.experiment.service.DataserviceExperimentService;
+import com.jeesite.modules.dataservice.entity.DataserviceExperiment;
+import com.jeesite.modules.dataservice.service.DataserviceExperimentService;
 
 /**
- * 试验信息表Controller
+ * experimentInfoController
  * @author wangcm
- * @version 2024-12-16
+ * @version 2024-12-18
  */
 @Controller
-@Api(tags = "试验信息管理")
-@RequestMapping(value = "${adminPath}/experiment/dataserviceExperiment")
-@CrossOrigin
+@RequestMapping(value = "${adminPath}/dataservice/experiment")
 public class DataserviceExperimentController extends BaseController {
 
 	@Autowired
@@ -43,18 +45,18 @@ public class DataserviceExperimentController extends BaseController {
 	/**
 	 * 查询列表
 	 */
-	@RequiresPermissions("experiment:dataserviceExperiment:view")
+	@RequiresPermissions("dataservice:experiment:view")
 	@RequestMapping(value = {"list", ""})
 	public String list(DataserviceExperiment dataserviceExperiment, Model model) {
 		model.addAttribute("dataserviceExperiment", dataserviceExperiment);
-		return "modules/experiment/dataserviceExperimentList";
+		return "modules/dataservice/dataserviceExperimentList";
 	}
 	
 	/**
 	 * 查询列表数据
 	 */
-	@RequiresPermissions("experiment:dataserviceExperiment:view")
-	@PostMapping(value = "listData")
+	@RequiresPermissions("dataservice:experiment:view")
+	@RequestMapping(value = "listData")
 	@ResponseBody
 	public Page<DataserviceExperiment> listData(DataserviceExperiment dataserviceExperiment, HttpServletRequest request, HttpServletResponse response) {
 		dataserviceExperiment.setPage(new Page<>(request, response));
@@ -65,33 +67,36 @@ public class DataserviceExperimentController extends BaseController {
 	/**
 	 * 查看编辑表单
 	 */
-	@RequiresPermissions("experiment:dataserviceExperiment:view")
+	@RequiresPermissions("dataservice:experiment:view")
 	@RequestMapping(value = "form")
 	public String form(DataserviceExperiment dataserviceExperiment, Model model) {
 		model.addAttribute("dataserviceExperiment", dataserviceExperiment);
-		return "modules/experiment/dataserviceExperimentForm";
+		return "modules/dataservice/dataserviceExperimentForm";
 	}
 
 	/**
 	 * 保存数据
 	 */
-	@RequiresPermissions("experiment:dataserviceExperiment:edit")
+	@RequiresPermissions("dataservice:experiment:edit")
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceExperiment dataserviceExperiment) {
+		User user = UserUtils.getUser();
+		String id = user.getId();
+		dataserviceExperiment.setExperimentUserid(id);
 		dataserviceExperimentService.save(dataserviceExperiment);
-		return renderResult(Global.TRUE, text("保存试验信息表成功！"));
+		return renderResult(Global.TRUE, text("保存experimentInfo成功！"));
 	}
 	
 	/**
 	 * 删除数据
 	 */
-	@RequiresPermissions("experiment:dataserviceExperiment:edit")
+	@RequiresPermissions("dataservice:experiment:edit")
 	@RequestMapping(value = "delete")
 	@ResponseBody
 	public String delete(DataserviceExperiment dataserviceExperiment) {
 		dataserviceExperimentService.delete(dataserviceExperiment);
-		return renderResult(Global.TRUE, text("删除试验信息表成功！"));
+		return renderResult(Global.TRUE, text("删除experimentInfo成功！"));
 	}
 	
 }

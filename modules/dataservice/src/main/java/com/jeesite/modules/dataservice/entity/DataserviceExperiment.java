@@ -1,4 +1,4 @@
-package com.jeesite.modules.experiment.entity;
+package com.jeesite.modules.dataservice.entity;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -14,19 +14,19 @@ import com.jeesite.common.mybatis.annotation.Table;
 import com.jeesite.common.mybatis.mapper.query.QueryType;
 
 /**
- * 试验信息表Entity
+ * experimentInfoEntity
  * @author wangcm
- * @version 2024-12-16
+ * @version 2024-12-18
  */
-@Table(name="dataservice_experiment", alias="a", label="试验信息表信息", columns={
+@Table(name="dataservice_experiment", alias="a", label="experimentInfo信息", columns={
 		@Column(name="id", attrName="id", label="主键", isPK=true),
 		@Column(name="experiment_name", attrName="experimentName", label="试验名称", queryType=QueryType.LIKE),
-		@Column(name="experiment_testinggroundid", attrName="experimentTestinggroundid", label="试验场ID", isUpdateForce=true),
-		@Column(name="experiment_testinggroundname", attrName="experimentTestinggroundname", label="试验场名称"),
-		@Column(name="experiment_workplace", attrName="experimentWorkplace", label="试验单位"),
-		@Column(name="experiment_staff", attrName="experimentStaff", label="试验人员"),
+		@Column(name="experiment_testinggroundid", attrName="experimentTestinggroundid", label="试验场ID", isQuery=false, isUpdateForce=true),
+		@Column(name="experiment_testinggroundname", attrName="experimentTestinggroundname", label="试验场名称", queryType=QueryType.LIKE),
+		@Column(name="experiment_workplace", attrName="experimentWorkplace", label="试验单位", queryType=QueryType.LIKE),
+		@Column(name="experiment_staff", attrName="experimentStaff", label="试验人员", queryType=QueryType.LIKE),
 		@Column(name="experiment_testingtime", attrName="experimentTestingtime", label="测试时间"),
-		@Column(name="experiment_userid", attrName="experimentUserid", label="创建用户id"),
+		@Column(name="experiment_userid", attrName="experimentUserid", label="创建用户id", isUpdate=false, isQuery=false),
 	}, orderBy="a.id DESC"
 )
 public class DataserviceExperiment extends DataEntity<DataserviceExperiment> {
@@ -104,7 +104,6 @@ public class DataserviceExperiment extends DataEntity<DataserviceExperiment> {
 		this.experimentTestingtime = experimentTestingtime;
 	}
 	
-	@NotBlank(message="创建用户id不能为空")
 	@Size(min=0, max=100, message="创建用户id长度不能超过 100 个字符")
 	public String getExperimentUserid() {
 		return experimentUserid;
