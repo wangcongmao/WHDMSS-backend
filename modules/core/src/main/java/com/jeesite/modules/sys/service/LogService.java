@@ -8,6 +8,8 @@ import com.jeesite.common.entity.Page;
 import com.jeesite.common.service.api.CrudServiceApi;
 import com.jeesite.modules.sys.entity.Log;
 
+import java.util.List;
+
 /**
  * 日志Service
  * @author ThinkGem
@@ -34,4 +36,5 @@ public interface LogService extends CrudServiceApi<Log> {
 	 * 4、清理1年6个月前的所有日志：logService.deleteLogBefore(1, 6, 0);
 	 */
 	void deleteLogBefore(Integer year, Integer months, Integer days);
+
 }

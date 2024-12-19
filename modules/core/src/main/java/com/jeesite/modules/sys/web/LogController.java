@@ -22,6 +22,9 @@ import com.jeesite.common.web.BaseController;
 import com.jeesite.modules.sys.entity.Log;
 import com.jeesite.modules.sys.service.LogService;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * 日志Controller
  * @author ThinkGem
@@ -68,8 +71,9 @@ public class LogController extends BaseController {
     @RequestMapping(value = "listData")
     @ResponseBody
     public Page<Log> listData(Log log, HttpServletRequest request, HttpServletResponse response) {
-    	log.setPage(new Page<>(request, response));
-        Page<Log> page = logService.findPage(log); 
+
+        log.setPage(new Page<>(request, response));
+        Page<Log> page = logService.findPage(log);
         return page;
     }
     
