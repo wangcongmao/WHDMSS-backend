@@ -1,0 +1,15 @@
+package com.jeesite.modules.dataservice.dao;
+
+import com.jeesite.common.dao.TreeDao;
+import com.jeesite.common.mybatis.annotation.MyBatisDao;
+import com.jeesite.modules.dataservice.entity.DataservicePaltformDevice;
+
+/**
+ * platformDeviceDAO接口
+ * @author wangcm
+ * @version 2024-12-27
+ */
+@MyBatisDao
+public interface DataservicePaltformDeviceDao extends TreeDao<DataservicePaltformDevice> {
+	
+}
