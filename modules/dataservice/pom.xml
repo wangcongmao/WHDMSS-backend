@@ -24,7 +24,13 @@
 			<artifactId>jeesite-module-core</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.github.pagehelper</groupId>
+			<artifactId>pagehelper</artifactId>
+			<version>5.3.0</version>
+		</dependency>
+
+
 	</dependencies>
 	
 	<developers>

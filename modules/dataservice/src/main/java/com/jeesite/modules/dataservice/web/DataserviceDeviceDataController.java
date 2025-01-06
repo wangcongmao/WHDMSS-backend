@@ -9,16 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jeesite.common.config.Global;
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.web.BaseController;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceData;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceDataService;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * deviceDataController
@@ -60,6 +57,17 @@ public class DataserviceDeviceDataController extends BaseController {
 		dataserviceDeviceData.setPage(new Page<>(request, response));
 		Page<DataserviceDeviceData> page = dataserviceDeviceDataService.findPage(dataserviceDeviceData);
 		return page;
+	}
+
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = "listDataPage")
+	@ResponseBody
+	public List<DataserviceDeviceData> getDeviceDataByDeviceId(DataserviceDeviceData dataserviceDeviceData) {
+		if (dataserviceDeviceData.getDataDeviceId().equals("")) {
+			return dataserviceDeviceDataService.findList(dataserviceDeviceData);
+		} else {
+			return dataserviceDeviceDataService.getDeviceDataByDeviceId(dataserviceDeviceData.getDataDeviceId());
+		}
 	}
 
 	/**

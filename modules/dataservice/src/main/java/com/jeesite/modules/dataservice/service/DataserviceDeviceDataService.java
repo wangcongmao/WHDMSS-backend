@@ -9,6 +9,8 @@ import com.jeesite.common.service.CrudService;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceData;
 import com.jeesite.modules.dataservice.dao.DataserviceDeviceDataDao;
 
+import javax.annotation.Resource;
+
 /**
  * deviceDataService
  * @author wangcm
@@ -16,7 +18,8 @@ import com.jeesite.modules.dataservice.dao.DataserviceDeviceDataDao;
  */
 @Service
 public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceDataDao, DataserviceDeviceData> {
-	
+	@Resource
+	private DataserviceDeviceDataDao dataserviceDeviceDataDao;
 	/**
 	 * 获取单条数据
 	 * @param dataserviceDeviceData
@@ -76,6 +79,11 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	@Transactional
 	public void delete(DataserviceDeviceData dataserviceDeviceData) {
 		super.delete(dataserviceDeviceData);
+	}
+
+	// 根据设备编号获取多个设备数据
+	public List<DataserviceDeviceData> getDeviceDataByDeviceId(String dataDeviceId) {
+		return dataserviceDeviceDataDao.getByDeviceId(dataDeviceId);
 	}
 	
 }
