@@ -1,6 +1,10 @@
 package com.jeesite.modules.dataservice.service;
 
 import java.util.List;
+
+import com.jeesite.modules.dataservice.dao.DataserviceDeviceDataDao;
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +20,10 @@ import com.jeesite.modules.dataservice.dao.DataserviceDeviceStructureDao;
  */
 @Service
 public class DataserviceDeviceStructureService extends CrudService<DataserviceDeviceStructureDao, DataserviceDeviceStructure> {
-	
+
+	@Autowired
+	DataserviceDeviceStructureDao dataserviceDeviceStructureDao;
+
 	/**
 	 * 获取单条数据
 	 * @param dataserviceDeviceStructure
@@ -25,6 +32,18 @@ public class DataserviceDeviceStructureService extends CrudService<DataserviceDe
 	@Override
 	public DataserviceDeviceStructure get(DataserviceDeviceStructure dataserviceDeviceStructure) {
 		return super.get(dataserviceDeviceStructure);
+	}
+
+	/**
+	 *
+	 */
+	public DataserviceDeviceStructure getOne(DataserviceDeviceStructure dataserviceDeviceStructure) {
+		if (!dataserviceDeviceStructure.getStructureDeviceId().equals("")) {
+			DataserviceDeviceStructure structure = dataserviceDeviceStructureDao.getStructureByDeviceId(dataserviceDeviceStructure.getStructureDeviceId());
+			return structure;
+		} else {
+			return new DataserviceDeviceStructure();
+		}
 	}
 	
 	/**
