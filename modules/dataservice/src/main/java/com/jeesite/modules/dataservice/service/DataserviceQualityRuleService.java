@@ -1,0 +1,81 @@
+package com.jeesite.modules.dataservice.service;
+
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.jeesite.common.entity.Page;
+import com.jeesite.common.service.CrudService;
+import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
+import com.jeesite.modules.dataservice.dao.DataserviceQualityRuleDao;
+
+/**
+ * qualityRuleService
+ * @author wangcm
+ * @version 2025-01-29
+ */
+@Service
+public class DataserviceQualityRuleService extends CrudService<DataserviceQualityRuleDao, DataserviceQualityRule> {
+	
+	/**
+	 * 获取单条数据
+	 * @param dataserviceQualityRule
+	 * @return
+	 */
+	@Override
+	public DataserviceQualityRule get(DataserviceQualityRule dataserviceQualityRule) {
+		return super.get(dataserviceQualityRule);
+	}
+	
+	/**
+	 * 查询分页数据
+	 * @param dataserviceQualityRule 查询条件
+	 * @param dataserviceQualityRule page 分页对象
+	 * @return
+	 */
+	@Override
+	public Page<DataserviceQualityRule> findPage(DataserviceQualityRule dataserviceQualityRule) {
+		return super.findPage(dataserviceQualityRule);
+	}
+	
+	/**
+	 * 查询列表数据
+	 * @param dataserviceQualityRule
+	 * @return
+	 */
+	@Override
+	public List<DataserviceQualityRule> findList(DataserviceQualityRule dataserviceQualityRule) {
+		return super.findList(dataserviceQualityRule);
+	}
+	
+	/**
+	 * 保存数据（插入或更新）
+	 * @param dataserviceQualityRule
+	 */
+	@Override
+	@Transactional
+	public void save(DataserviceQualityRule dataserviceQualityRule) {
+		super.save(dataserviceQualityRule);
+	}
+	
+	/**
+	 * 更新状态
+	 * @param dataserviceQualityRule
+	 */
+	@Override
+	@Transactional
+	public void updateStatus(DataserviceQualityRule dataserviceQualityRule) {
+		super.updateStatus(dataserviceQualityRule);
+	}
+	
+	/**
+	 * 删除数据
+	 * @param dataserviceQualityRule
+	 */
+	@Override
+	@Transactional
+	public void delete(DataserviceQualityRule dataserviceQualityRule) {
+		super.delete(dataserviceQualityRule);
+	}
+	
+}
