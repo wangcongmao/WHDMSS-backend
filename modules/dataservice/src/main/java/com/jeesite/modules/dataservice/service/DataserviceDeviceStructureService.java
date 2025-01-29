@@ -35,6 +35,15 @@ public class DataserviceDeviceStructureService extends CrudService<DataserviceDe
 	}
 
 	/**
+	 * 获取所有数据
+	 * @param
+	 * @return
+	 */
+	public List<DataserviceDeviceStructure> list() {
+		return dataserviceDeviceStructureDao.list();
+	}
+
+	/**
 	 *
 	 */
 	public DataserviceDeviceStructure getOne(DataserviceDeviceStructure dataserviceDeviceStructure) {

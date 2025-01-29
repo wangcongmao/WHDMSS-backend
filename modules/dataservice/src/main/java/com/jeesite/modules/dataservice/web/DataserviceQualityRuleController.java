@@ -4,6 +4,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
+import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,9 @@ public class DataserviceQualityRuleController extends BaseController {
 
 	@Autowired
 	private DataserviceQualityRuleService dataserviceQualityRuleService;
+
+	@Autowired
+	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
 	
 	/**
 	 * 获取数据
@@ -60,6 +65,16 @@ public class DataserviceQualityRuleController extends BaseController {
 		dataserviceQualityRule.setPage(new Page<>(request, response));
 		Page<DataserviceQualityRule> page = dataserviceQualityRuleService.findPage(dataserviceQualityRule);
 		return page;
+	}
+
+	/**
+	 * 返回设备列表
+	 */
+	@RequiresPermissions("dataservice:qualityRule:view")
+	@RequestMapping(value = "getDevice")
+	@ResponseBody
+	public List<DataserviceDeviceStructure> getDevice(HttpServletRequest request, HttpServletResponse response) {
+		return dataserviceDeviceStructureService.list();
 	}
 
 	/**

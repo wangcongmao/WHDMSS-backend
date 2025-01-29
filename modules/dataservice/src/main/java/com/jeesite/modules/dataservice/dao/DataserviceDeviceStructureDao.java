@@ -17,4 +17,7 @@ import java.util.List;
 public interface DataserviceDeviceStructureDao extends CrudDao<DataserviceDeviceStructure> {
     @Select("SELECT * FROM dataservice_device_structure WHERE structure_device_id = #{dataDeviceId} LIMIT 1")
     DataserviceDeviceStructure getStructureByDeviceId(String dataDeviceId);
+
+    @Select("SELECT * FROM dataservice_device_structure")
+    List<DataserviceDeviceStructure> list();
 }
