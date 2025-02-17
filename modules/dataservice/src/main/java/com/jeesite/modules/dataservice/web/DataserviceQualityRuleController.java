@@ -1,6 +1,9 @@
 package com.jeesite.modules.dataservice.web;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -75,6 +78,26 @@ public class DataserviceQualityRuleController extends BaseController {
 	@ResponseBody
 	public List<DataserviceDeviceStructure> getDevice(HttpServletRequest request, HttpServletResponse response) {
 		return dataserviceDeviceStructureService.list();
+	}
+
+	/**
+	 * 返回设备ID列表
+	 */
+	@RequiresPermissions("dataservice:qualityRule:view")
+	@RequestMapping(value = "getDeviceID")
+	@ResponseBody
+	public List<Map<String, String>> getDeviceID(HttpServletRequest request, HttpServletResponse response) {
+		List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
+
+		// 转换成前端需要的格式
+		List<Map<String, String>> result = list.stream().map(device -> {
+			Map<String, String> map = new HashMap<>();
+			map.put("label", device.getStructureDeviceId()); // 设备编号作为 label
+			map.put("value", device.getStructureDeviceId()); // 设备编号作为 value
+			return map;
+		}).collect(Collectors.toList());
+
+		return result;
 	}
 
 	/**
