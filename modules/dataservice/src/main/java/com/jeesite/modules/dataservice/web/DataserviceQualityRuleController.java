@@ -27,7 +27,7 @@ import com.jeesite.modules.dataservice.service.DataserviceQualityRuleService;
 
 /**
  * qualityRuleController
- * @author wangcm
+ * @author wangcmn
  * @version 2025-01-29
  */
 @Controller
