@@ -58,7 +58,7 @@ public class DataserviceQualityRule extends DataEntity<DataserviceQualityRule> {
 		this.qualityRuleName = qualityRuleName;
 	}
 	
-	@Size(min=0, max=100, message="说明长度不能超过 100 个字符")
+	@Size(min=0, max=1024, message="说明长度不能超过 100 个字符")
 	public String getQualityRule() {
 		return qualityRule;
 	}
