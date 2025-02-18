@@ -1,6 +1,8 @@
 package com.jeesite.modules.dataservice.service;
 
 import java.util.List;
+
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceData;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,8 @@ import com.jeesite.common.service.CrudService;
 import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
 import com.jeesite.modules.dataservice.dao.DataserviceQualityRuleDao;
 
+import javax.annotation.Resource;
+
 /**
  * qualityRuleService
  * @author wangcm
@@ -16,6 +20,9 @@ import com.jeesite.modules.dataservice.dao.DataserviceQualityRuleDao;
  */
 @Service
 public class DataserviceQualityRuleService extends CrudService<DataserviceQualityRuleDao, DataserviceQualityRule> {
+
+	@Resource
+	private DataserviceQualityRuleDao dataserviceQualityRuleDao;
 	
 	/**
 	 * 获取单条数据
@@ -76,6 +83,11 @@ public class DataserviceQualityRuleService extends CrudService<DataserviceQualit
 	@Transactional
 	public void delete(DataserviceQualityRule dataserviceQualityRule) {
 		super.delete(dataserviceQualityRule);
+	}
+
+	// 根据设备编号获取多个规则
+	public List<DataserviceQualityRule> getRuleByDeviceId(String dataDeviceId) {
+		return dataserviceQualityRuleDao.getByDeviceId(dataDeviceId);
 	}
 	
 }
