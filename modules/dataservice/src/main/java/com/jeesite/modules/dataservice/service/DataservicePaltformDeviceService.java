@@ -1,6 +1,8 @@
 package com.jeesite.modules.dataservice.service;
 
 import java.util.List;
+
+import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,8 @@ import com.jeesite.common.service.TreeService;
 import com.jeesite.modules.dataservice.entity.DataservicePaltformDevice;
 import com.jeesite.modules.dataservice.dao.DataservicePaltformDeviceDao;
 
+import javax.annotation.Resource;
+
 /**
  * platformDeviceService
  * @author wangcm
@@ -16,6 +20,9 @@ import com.jeesite.modules.dataservice.dao.DataservicePaltformDeviceDao;
  */
 @Service
 public class DataservicePaltformDeviceService extends TreeService<DataservicePaltformDeviceDao, DataservicePaltformDevice> {
+
+	@Resource
+	private DataservicePaltformDeviceDao dataservicePaltformDeviceDao;
 	
 	/**
 	 * 获取单条数据
@@ -76,6 +83,11 @@ public class DataservicePaltformDeviceService extends TreeService<DataservicePal
 	@Transactional
 	public void delete(DataservicePaltformDevice dataservicePaltformDevice) {
 		super.delete(dataservicePaltformDevice);
+	}
+
+	// 获取所有数据
+	public List<DataservicePaltformDevice> getAll() {
+		return dataservicePaltformDeviceDao.getAll();
 	}
 	
 }

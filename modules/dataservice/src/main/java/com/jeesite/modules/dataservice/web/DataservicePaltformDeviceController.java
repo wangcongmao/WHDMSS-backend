@@ -1,5 +1,6 @@
 package com.jeesite.modules.dataservice.web;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
@@ -208,6 +209,16 @@ public class DataservicePaltformDeviceController extends BaseController {
 		}
 		dataservicePaltformDeviceService.fixTreeData();
 		return renderResult(Global.TRUE, "数据修复成功");
+	}
+
+	/**
+	 * 获取所有数据
+	 */
+	@RequiresPermissions("dataservice:paltformDevice:view")
+	@RequestMapping(value = {"getAll", ""})
+	public List<DataservicePaltformDevice> getAll() {
+		List<DataservicePaltformDevice> all = dataservicePaltformDeviceService.getAll();
+		return all;
 	}
 	
 }
