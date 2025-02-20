@@ -85,5 +85,29 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	public List<DataserviceDeviceData> getDeviceDataByDeviceId(String dataDeviceId) {
 		return dataserviceDeviceDataDao.getByDeviceId(dataDeviceId);
 	}
+
+	/**
+	 * 获取正常数据总数
+	 * @return
+	 */
+	public int getNormalDataCount() {
+		return 0;
+	}
+
+	/**
+	 * 获取可疑数据总数
+	 * @return
+	 */
+	public int getUncertainDataCount() {
+		return 0;
+	}
+
+	/**
+	 * 获取异常数据总数
+	 * @return
+	 */
+	public int getErrorDataCount() {
+		return 0;
+	}
 	
 }

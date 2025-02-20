@@ -4,10 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
+import com.jeesite.modules.dataservice.service.DataserviceDeviceDataService;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,9 @@ public class DataserviceQualityRuleController extends BaseController {
 
 	@Autowired
 	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
+
+	@Resource
+	private DataserviceDeviceDataService dataserviceDeviceDataService;
 	
 	/**
 	 * 获取数据
@@ -130,6 +135,18 @@ public class DataserviceQualityRuleController extends BaseController {
 	public String delete(DataserviceQualityRule dataserviceQualityRule) {
 		dataserviceQualityRuleService.delete(dataserviceQualityRule);
 		return renderResult(Global.TRUE, text("删除qualityRule成功！"));
+	}
+
+	/**
+	 * 获取数据量
+	 * 正常数据，可疑数据，异常数据
+	 */
+	@RequiresPermissions("dataservice:qualityRule:")
+	@RequestMapping(value = "getDataCount")
+	@ResponseBody
+	public Map<String, Integer> getDataCount() {
+
+		return new HashMap<>();
 	}
 	
 }
