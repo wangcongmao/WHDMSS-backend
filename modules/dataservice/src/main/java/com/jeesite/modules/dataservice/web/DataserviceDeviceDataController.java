@@ -1,5 +1,6 @@
 package com.jeesite.modules.dataservice.web;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.alibaba.fastjson.JSONObject;
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
 import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
+import com.jeesite.modules.dataservice.entity.DevicesDataQuality;
+import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import com.jeesite.modules.dataservice.service.DataserviceQualityRuleService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +43,9 @@ public class DataserviceDeviceDataController extends BaseController {
 
 	@Resource
 	private DataserviceQualityRuleService dataserviceQualityRuleService;
+
+	@Resource
+	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
 
 	/**
 	 * 获取数据
@@ -200,5 +207,64 @@ public class DataserviceDeviceDataController extends BaseController {
 		dataserviceDeviceDataService.delete(dataserviceDeviceData);
 		return renderResult(Global.TRUE, text("删除deviceData成功！"));
 	}
+
+	/**
+	 * 获取正常数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getNormalDataCount"})
+	@ResponseBody
+	public Integer getNormalDataCount() {
+		String aaa = dataserviceDeviceDataService.getNormalDataCount()+"";
+		return dataserviceDeviceDataService.getNormalDataCount();
+	}
+
+	/**
+	 * 获取可疑数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getUncertainDataCount", ""})
+	@ResponseBody
+	public Integer getUncertainDataCount() {
+		return dataserviceDeviceDataService.getUncertainDataCount();
+	}
+
+	/**
+	 * 获取异常数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getErrorDataCount", ""})
+	@ResponseBody
+	public Integer getErrorDataCount() {
+		return dataserviceDeviceDataService.getErrorDataCount();
+	}
+
+	/**
+	 * 获取所有设备数据质量情况
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getDeviceDataQualityCount", ""})
+	@ResponseBody
+	public List<DevicesDataQuality> getDeviceDataQualityCount(String dataDeviceId) {
+		List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
+		List<DevicesDataQuality> res = new ArrayList<>();
+		for (DataserviceDeviceStructure dataserviceDeviceStructure : list) {
+			DevicesDataQuality devicesDataQuality = new DevicesDataQuality();
+			Integer deviceNormalDataCount = dataserviceDeviceDataService.getDeviceNormalDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+			Integer deviceUncertainDataCount = dataserviceDeviceDataService.getDeviceUncertainDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+			Integer deviceErrorDataCount = dataserviceDeviceDataService.getDeviceErrorDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+			devicesDataQuality.setName(dataserviceDeviceStructure.getStructureDeviceId());
+			devicesDataQuality.setNormalCount(deviceNormalDataCount);
+			devicesDataQuality.setUncertainCount(deviceUncertainDataCount);
+			devicesDataQuality.setErrorCount(deviceErrorDataCount);
+			res.add(new DevicesDataQuality(devicesDataQuality));
+		}
+		return res;
+	}
+
+	/**
+	 * 获取某个设备的各项参数的数据质量情况
+	 * 考虑新建一个表-新建数据结构时在表中加记录   id，参数名，0，正常个数  |  id，参数名，1，可疑个数  |  id，参数名，2，异常个数
+	 */
 
 }

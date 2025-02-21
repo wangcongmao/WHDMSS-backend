@@ -19,23 +19,23 @@ public interface DataserviceDeviceDataDao extends CrudDao<DataserviceDeviceData>
     List<DataserviceDeviceData> getByDeviceId(String dataDeviceId);
     //获取正常数据总数
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 0")
-    int getNormalDataCount();
+    Integer getNormalDataCount();
     //获取可疑数据总数
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 5")
-    int getUncertainDataCount();
+    Integer getUncertainDataCount();
     //获取异常数据总数
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 6")
-    int getErrorDataCount();
+    Integer getErrorDataCount();
 
     //获取设备正常数据总数
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 0 AND data_device_id = #{dataDeviceId}")
-    int getDeviceNormalDataCount(String dataDeviceId);
+    Integer getDeviceNormalDataCount(String dataDeviceId);
     //获取设备可疑数据总数
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 5 AND data_device_id = #{dataDeviceId}")
-    int getDeviceUncertainDataCount(String dataDeviceId);
+    Integer getDeviceUncertainDataCount(String dataDeviceId);
     //获取设备异常数据总数
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 6 AND data_device_id = #{dataDeviceId}")
-    int getDeviceErrorDataCount(String dataDeviceId);
+    Integer getDeviceErrorDataCount(String dataDeviceId);
 
     //获取设备具体数据某一项异常时可以先获取该设备所有数据，在service层计算各参数数量
 

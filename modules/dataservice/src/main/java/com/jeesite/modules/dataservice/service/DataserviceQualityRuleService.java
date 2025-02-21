@@ -89,5 +89,14 @@ public class DataserviceQualityRuleService extends CrudService<DataserviceQualit
 	public List<DataserviceQualityRule> getRuleByDeviceId(String dataDeviceId) {
 		return dataserviceQualityRuleDao.getByDeviceId(dataDeviceId);
 	}
+
+	/**
+	 * 获取所有
+	 * @param
+	 * @return
+	 */
+	public List<DataserviceQualityRule> listAll() {
+		return dataserviceQualityRuleDao.listAll();
+	}
 	
 }

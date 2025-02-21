@@ -16,4 +16,12 @@ import java.util.List;
 public interface DataserviceQualityRuleDao extends CrudDao<DataserviceQualityRule> {
 	@Select("SELECT * FROM dataservice_quality_rule WHERE quality_device_id = #{dataDeviceId}")
     List<DataserviceQualityRule> getByDeviceId(String dataDeviceId);
+
+    /**
+     * 获取所有
+     * @param dataDeviceId
+     * @return
+     */
+    @Select("SELECT * FROM dataservice_quality_rule")
+    List<DataserviceQualityRule> listAll();
 }

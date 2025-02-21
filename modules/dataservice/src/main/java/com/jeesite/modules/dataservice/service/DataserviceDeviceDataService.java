@@ -90,24 +90,48 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	 * 获取正常数据总数
 	 * @return
 	 */
-	public int getNormalDataCount() {
-		return 0;
+	public Integer getNormalDataCount() {
+		return dataserviceDeviceDataDao.getNormalDataCount();
 	}
 
 	/**
 	 * 获取可疑数据总数
 	 * @return
 	 */
-	public int getUncertainDataCount() {
-		return 0;
+	public Integer getUncertainDataCount() {
+		return dataserviceDeviceDataDao.getUncertainDataCount();
 	}
 
 	/**
 	 * 获取异常数据总数
 	 * @return
 	 */
-	public int getErrorDataCount() {
-		return 0;
+	public Integer getErrorDataCount() {
+		return dataserviceDeviceDataDao.getErrorDataCount();
+	}
+
+	/**
+	 * 获取单个设备正常数据总数
+	 * @return
+	 */
+	public Integer getDeviceNormalDataCount(String dataDeviceId) {
+		return dataserviceDeviceDataDao.getDeviceNormalDataCount(dataDeviceId);
+	}
+
+	/**
+	 * 获取单个设备可疑数据总数
+	 * @return
+	 */
+	public Integer getDeviceUncertainDataCount(String dataDeviceId) {
+		return dataserviceDeviceDataDao.getDeviceUncertainDataCount(dataDeviceId);
+	}
+
+	/**
+	 * 获取单个设备异常数据总数
+	 * @return
+	 */
+	public Integer getDeviceErrorDataCount(String dataDeviceId) {
+		return dataserviceDeviceDataDao.getDeviceErrorDataCount(dataDeviceId);
 	}
 	
 }
