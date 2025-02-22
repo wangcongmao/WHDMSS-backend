@@ -12,6 +12,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
 import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
 import com.jeesite.modules.dataservice.entity.DevicesDataQuality;
+import com.jeesite.modules.dataservice.entity.support.ConditionType;
+import com.jeesite.modules.dataservice.entity.support.ParamDataCondition;
+import com.jeesite.modules.dataservice.service.DataserviceDeviceDataConditionService;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import com.jeesite.modules.dataservice.service.DataserviceQualityRuleService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -46,6 +49,9 @@ public class DataserviceDeviceDataController extends BaseController {
 
 	@Resource
 	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
+
+	@Autowired
+	private DataserviceDeviceDataConditionService dataserviceDeviceDataConditionService;
 
 	/**
 	 * 获取数据
@@ -105,6 +111,14 @@ public class DataserviceDeviceDataController extends BaseController {
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceData dataserviceDeviceData) {
+		DataserviceDeviceStructure structureDevice = dataserviceDeviceStructureService.getByStructureDeviceId(dataserviceDeviceData.getDataDeviceId());
+		String structureData = structureDevice.getStructureData();
+		structureData = structureData.substring(11, structureData.length()-2);
+		String[] stringsa = structureData.split("\"prm\":\"");
+		for (int i = 1; i < stringsa.length; i++) {
+			String paramName = stringsa[i].substring(0, stringsa[i].indexOf('"'));
+			dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), paramName, 0);
+		}
 
 		// 获取该设备的所有质量规则
 		List<DataserviceQualityRule> ruleByDeviceId = dataserviceQualityRuleService.getRuleByDeviceId(dataserviceDeviceData.getDataDeviceId());
@@ -124,6 +138,7 @@ public class DataserviceDeviceDataController extends BaseController {
 		// 遍历每条质量规则进行验证
 		for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
 			String qualityRule = dataserviceQualityRule.getQualityRule();
+			String status = "0";
 
 			// 分割 qualityRule，得到结构体部分
 			String[] ruleParts = qualityRule.split("\\{");
@@ -165,16 +180,17 @@ public class DataserviceDeviceDataController extends BaseController {
 
 						// 如果校验不通过，标记为无效并保存
 						if (!isValid) {
-							dataserviceDeviceData.setStatus("6");
-							dataserviceDeviceDataService.save(dataserviceDeviceData);
-							return renderResult(Global.TRUE, text("保存deviceData成功！"));
+							dataserviceDeviceData.setStatus(ConditionType.ABNORMAL.getCode());
+							dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), param, 2);
+							dataserviceDeviceDataConditionService.decrementNums(dataserviceDeviceData.getDataDeviceId(), param, 0);
 						}
 
 					} catch (NumberFormatException e) {
 						// 解析数字失败，标记为无效并保存
-						dataserviceDeviceData.setStatus("6");
-						dataserviceDeviceDataService.save(dataserviceDeviceData);
-						return renderResult(Global.TRUE, text("保存deviceData成功！"));
+						dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), param, 2);
+						dataserviceDeviceDataConditionService.decrementNums(dataserviceDeviceData.getDataDeviceId(), param, 0);
+						dataserviceDeviceData.setStatus(ConditionType.ABNORMAL.getCode());
+
 					}
 				}
 			}
@@ -262,9 +278,18 @@ public class DataserviceDeviceDataController extends BaseController {
 		return res;
 	}
 
-	/**
-	 * 获取某个设备的各项参数的数据质量情况
-	 * 考虑新建一个表-新建数据结构时在表中加记录   id，参数名，0，正常个数  |  id，参数名，1，可疑个数  |  id，参数名，2，异常个数
-	 */
+//	/**
+//	 * 获取某个设备的各项参数的数据质量情况
+//	 * 考虑新建一个表-新建数据结构时在表中加记录   id，参数名，0，正常个数  |  id，参数名，1，可疑个数  |  id，参数名，2，异常个数
+//	 */
+//	/**
+//	 * 根据deviceId查询当前设备各参数数据状况
+//	 */
+//	@RequiresPermissions("dataservice:deviceData:view")
+//	@RequestMapping(value = {"getParamConditionByDeviceId", ""})
+//	@ResponseBody
+//	public List<ParamDataCondition> getParamConditionByDeviceId(String dataDeviceId) {
+//		return dataserviceDeviceDataConditionService.getParamConditionByDeviceId(dataDeviceId);
+//	}
 
 }

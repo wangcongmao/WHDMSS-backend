@@ -4,6 +4,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.jeesite.modules.dataservice.entity.support.ParamDataCondition;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -75,7 +76,7 @@ public class DataserviceDeviceDataConditionController extends BaseController {
 	/**
 	 * 保存数据
 	 */
-	@RequiresPermissions("dataservice:deviceDataCondition:edit")
+	@RequiresPermissions("dataservice:deviceStructure:edit")
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceDataCondition dataserviceDeviceDataCondition) {
@@ -92,6 +93,20 @@ public class DataserviceDeviceDataConditionController extends BaseController {
 	public String delete(DataserviceDeviceDataCondition dataserviceDeviceDataCondition) {
 		dataserviceDeviceDataConditionService.delete(dataserviceDeviceDataCondition);
 		return renderResult(Global.TRUE, text("删除dataservice_device_data_condition成功！"));
+	}
+
+	/**
+	 * 获取某个设备的各项参数的数据质量情况
+	 * 考虑新建一个表-新建数据结构时在表中加记录   id，参数名，0，正常个数  |  id，参数名，1，可疑个数  |  id，参数名，2，异常个数
+	 */
+	/**
+	 * 根据deviceId查询当前设备各参数数据状况
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getParamConditionByDeviceId", ""})
+	@ResponseBody
+	public List<ParamDataCondition> getParamConditionByDeviceId(String dataDeviceId) {
+		return dataserviceDeviceDataConditionService.getParamConditionByDeviceId(dataDeviceId);
 	}
 	
 }

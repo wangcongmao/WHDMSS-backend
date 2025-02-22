@@ -105,5 +105,9 @@ public class DataserviceDeviceStructureService extends CrudService<DataserviceDe
 	public void delete(DataserviceDeviceStructure dataserviceDeviceStructure) {
 		super.delete(dataserviceDeviceStructure);
 	}
-	
+
+	@Transactional
+    public DataserviceDeviceStructure getByStructureDeviceId(String dataDeviceId) {
+		return dataserviceDeviceStructureDao.getStructureByDeviceId(dataDeviceId);
+    }
 }

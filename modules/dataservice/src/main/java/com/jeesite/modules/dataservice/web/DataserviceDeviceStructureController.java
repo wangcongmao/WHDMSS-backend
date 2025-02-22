@@ -2,9 +2,13 @@ package com.jeesite.modules.dataservice.web;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceDataCondition;
+import com.jeesite.modules.dataservice.service.DataserviceDeviceDataConditionService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,7 +36,14 @@ public class DataserviceDeviceStructureController extends BaseController {
 
 	@Autowired
 	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
-	
+
+	@Resource
+	private DataserviceDeviceDataConditionService dataserviceDeviceDataConditionService;
+
+	@Resource
+	private DataserviceDeviceDataConditionController dataserviceDeviceDataConditionController;
+
+
 	/**
 	 * 获取数据
 	 */
@@ -40,7 +51,7 @@ public class DataserviceDeviceStructureController extends BaseController {
 	public DataserviceDeviceStructure get(String id, boolean isNewRecord) {
 		return dataserviceDeviceStructureService.get(id, isNewRecord);
 	}
-	
+
 	/**
 	 * 查询列表
 	 */
@@ -50,7 +61,7 @@ public class DataserviceDeviceStructureController extends BaseController {
 		model.addAttribute("dataserviceDeviceStructure", dataserviceDeviceStructure);
 		return "modules/dataservice/dataserviceDeviceStructureList";
 	}
-	
+
 	/**
 	 * 查询列表数据
 	 */
@@ -119,6 +130,7 @@ public class DataserviceDeviceStructureController extends BaseController {
 		System.out.println(0);
 		return page;
 	}
+
 	@RequiresPermissions("dataservice:deviceStructure:view")
 	@RequestMapping(value = "getOne")
 	@ResponseBody
@@ -140,15 +152,57 @@ public class DataserviceDeviceStructureController extends BaseController {
 
 	/**
 	 * 保存数据
+	 * 新增数据结构：需要解析然后创建保存 dataservice_device_data_condition
+	 * 每一个 param 对应有三个结构初始化 nums 为 0
+	 * {"structs":[{"prm":"a","type":"number"},{"prm":"b","type":"string"},{"prm":"c","type":"date"}]}
+	 * {"prm":"a","type":"number"},{"prm":"b","type":"string"},{"prm":"c","type":"date"}
 	 */
 	@RequiresPermissions("dataservice:deviceStructure:edit")
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceStructure dataserviceDeviceStructure) {
 		dataserviceDeviceStructureService.save(dataserviceDeviceStructure);
+		String structureData = dataserviceDeviceStructure.getStructureData();
+		structureData = structureData.substring(11, structureData.length()-2);
+		String[] strings = structureData.split("\"prm\":\"");
+		for (int i = 1; i < strings.length; i++) {
+			String paramName = strings[i].substring(0, strings[i].indexOf('"'));
+
+			DataserviceDeviceDataCondition dataserviceDeviceDataCondition = new DataserviceDeviceDataCondition();
+			dataserviceDeviceDataCondition.setStructureDeviceId(dataserviceDeviceStructure.getStructureDeviceId());
+			dataserviceDeviceDataCondition.setDeviceParamName(paramName);
+			dataserviceDeviceDataCondition.setNums(0);
+			dataserviceDeviceDataCondition.setConditionType(0);
+//			dataserviceDeviceDataCondition.setId(generateRandomId()+"");
+			dataserviceDeviceDataConditionService.insertDeviceDataCondition(dataserviceDeviceDataCondition);
+
+			DataserviceDeviceDataCondition dataserviceDeviceDataCondition1 = new DataserviceDeviceDataCondition();
+			dataserviceDeviceDataCondition1.setStructureDeviceId(dataserviceDeviceStructure.getStructureDeviceId());
+			dataserviceDeviceDataCondition1.setDeviceParamName(paramName);
+			dataserviceDeviceDataCondition1.setNums(0);
+			dataserviceDeviceDataCondition1.setConditionType(1);
+//			dataserviceDeviceDataCondition1.setId(generateRandomId()+"");
+			dataserviceDeviceDataConditionService.insertDeviceDataCondition(dataserviceDeviceDataCondition1);
+
+			DataserviceDeviceDataCondition dataserviceDeviceDataCondition2 = new DataserviceDeviceDataCondition();
+			dataserviceDeviceDataCondition2.setStructureDeviceId(dataserviceDeviceStructure.getStructureDeviceId());
+			dataserviceDeviceDataCondition2.setDeviceParamName(paramName);
+			dataserviceDeviceDataCondition2.setNums(0);
+			dataserviceDeviceDataCondition2.setConditionType(2);
+//			dataserviceDeviceDataCondition2.setId(generateRandomId()+"");
+			dataserviceDeviceDataConditionService.insertDeviceDataCondition(dataserviceDeviceDataCondition2);
+		}
+
+
 		return renderResult(Global.TRUE, text("保存设备数据结构成功！"));
 	}
-	
+
+	// 生成一个8位的随机ID
+	public static int generateRandomId() {
+		Random random = new Random();
+		return 10000000 + random.nextInt(90000000);  // 生成一个范围在10000000到99999999之间的随机数
+	}
+
 	/**
 	 * 删除数据
 	 */
@@ -157,7 +211,8 @@ public class DataserviceDeviceStructureController extends BaseController {
 	@ResponseBody
 	public String delete(DataserviceDeviceStructure dataserviceDeviceStructure) {
 		dataserviceDeviceStructureService.delete(dataserviceDeviceStructure);
+		dataserviceDeviceDataConditionService.deleteByStructureDeviceId(dataserviceDeviceStructure.getStructureDeviceId());
 		return renderResult(Global.TRUE, text("删除设备数据结构成功！"));
 	}
-	
+
 }
