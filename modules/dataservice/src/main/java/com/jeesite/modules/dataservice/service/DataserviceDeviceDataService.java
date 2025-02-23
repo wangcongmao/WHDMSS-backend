@@ -133,5 +133,14 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	public Integer getDeviceErrorDataCount(String dataDeviceId) {
 		return dataserviceDeviceDataDao.getDeviceErrorDataCount(dataDeviceId);
 	}
-	
+
+	/**
+	 * 获取某个设备当天数据条数
+	 * @param deviceId
+	 * @param formattedDate
+	 * @return
+	 */
+    public int getDeviceDateCounts(String deviceId, String formattedDate) {
+		return dataserviceDeviceDataDao.getDeviceDateCounts(deviceId, formattedDate);
+    }
 }

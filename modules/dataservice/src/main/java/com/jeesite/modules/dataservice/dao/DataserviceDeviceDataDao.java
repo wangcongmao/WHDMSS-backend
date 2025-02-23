@@ -37,6 +37,9 @@ public interface DataserviceDeviceDataDao extends CrudDao<DataserviceDeviceData>
     @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE status = 6 AND data_device_id = #{dataDeviceId}")
     Integer getDeviceErrorDataCount(String dataDeviceId);
 
+    @Select("SELECT COUNT(*) FROM dataservice_device_data WHERE data_device_id = #{dataDeviceId} AND update_date = #{formattedDate}")
+    Integer getDeviceDateCounts(String dataDeviceId, String formattedDate);
+
     //获取设备具体数据某一项异常时可以先获取该设备所有数据，在service层计算各参数数量
 
     //饼图用这个图https://echarts.apache.org/examples/zh/editor.html?c=pie-simple
