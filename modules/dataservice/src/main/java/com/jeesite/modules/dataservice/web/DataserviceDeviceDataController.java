@@ -17,6 +17,7 @@ import com.jeesite.modules.dataservice.entity.support.ParamDataCondition;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceDataConditionService;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import com.jeesite.modules.dataservice.service.DataserviceQualityRuleService;
+import com.jeesite.modules.dataservice.service.support.WeatherService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -52,6 +53,9 @@ public class DataserviceDeviceDataController extends BaseController {
 
 	@Autowired
 	private DataserviceDeviceDataConditionService dataserviceDeviceDataConditionService;
+
+	@Resource
+	private WeatherService weatherService;
 
 	/**
 	 * 获取数据
@@ -291,5 +295,40 @@ public class DataserviceDeviceDataController extends BaseController {
 //	public List<ParamDataCondition> getParamConditionByDeviceId(String dataDeviceId) {
 //		return dataserviceDeviceDataConditionService.getParamConditionByDeviceId(dataDeviceId);
 //	}
+
+	/**
+	 * 获取3天天气数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getCurrentWeather", ""})
+	@ResponseBody
+	public List<String> getCurrentWeather() {
+		List<String> currentWeather = weatherService.getCurrentWeather();
+		return currentWeather;
+	}
+
+
+	/**
+	 * 获取未来24小时数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getFuture24hoursWeather", ""})
+	@ResponseBody
+	public List<WeatherService.DateTemp> getFuture24hoursWeather() {
+		List<WeatherService.DateTemp> future24hoursWeather = weatherService.getFuture24hoursWeather();
+		return future24hoursWeather;
+	}
+
+
+	/**
+	 * 获取预警数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getWarning", ""})
+	@ResponseBody
+	public WeatherService.Alert getWarning() {
+		WeatherService.Alert warning = weatherService.getWarning();
+		return warning;
+	}
 
 }
