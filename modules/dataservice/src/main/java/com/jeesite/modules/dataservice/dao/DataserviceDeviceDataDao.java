@@ -44,5 +44,14 @@ public interface DataserviceDeviceDataDao extends CrudDao<DataserviceDeviceData>
 
     //饼图用这个图https://echarts.apache.org/examples/zh/editor.html?c=pie-simple
 
+    //分页查数据
+    @Select("SELECT * FROM dataservice_device_data WHERE data_device_id = #{dataDeviceId} LIMIT #{pageSize} OFFSET #{offset}")
+    List<DataserviceDeviceData> getPageData(String dataDeviceId, Integer offset, Integer pageSize);
 
+    @Select("SELECT * FROM dataservice_device_data ORDER BY create_date DESC LIMIT #{pageSize} OFFSET #{offset}")
+    List<DataserviceDeviceData> getPageData(Integer offset, Integer pageSize);
+
+    // 获取总数
+    @Select("SELECT count(*) FROM dataservice_device_data WHERE data_device_id = #{dataDeviceId}")
+    Integer getDataCount(String deviceId);
 }

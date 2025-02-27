@@ -91,8 +91,11 @@ public class DataserviceQualityRuleController extends BaseController {
 	@RequiresPermissions("dataservice:qualityRule:view")
 	@RequestMapping(value = "getDeviceID")
 	@ResponseBody
-	public List<Map<String, String>> getDeviceID(HttpServletRequest request, HttpServletResponse response) {
-		List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
+	public List<Map<String, String>> getDeviceID(DataserviceDeviceStructure dataserviceDeviceStructure) {
+//		if (dataserviceDeviceStructure.getDataType() != null) {
+//			List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.findList(dataserviceDeviceStructure);
+//		}
+		List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.findList(dataserviceDeviceStructure);
 
 		// 转换成前端需要的格式
 		List<Map<String, String>> result = list.stream().map(device -> {

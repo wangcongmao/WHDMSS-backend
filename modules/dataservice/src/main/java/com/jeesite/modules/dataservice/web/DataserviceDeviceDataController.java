@@ -18,6 +18,7 @@ import com.jeesite.modules.dataservice.service.DataserviceDeviceDataConditionSer
 import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import com.jeesite.modules.dataservice.service.DataserviceQualityRuleService;
 import com.jeesite.modules.dataservice.service.support.WeatherService;
+import lombok.Data;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -90,12 +91,34 @@ public class DataserviceDeviceDataController extends BaseController {
 	@RequiresPermissions("dataservice:deviceData:view")
 	@RequestMapping(value = "listDataPage")
 	@ResponseBody
-	public List<DataserviceDeviceData> getDeviceDataByDeviceId(DataserviceDeviceData dataserviceDeviceData) {
+	public List<DataserviceDeviceData> getDeviceDataByDeviceId(PageData pageData) {
+		DataserviceDeviceData dataserviceDeviceData = new DataserviceDeviceData();
+		dataserviceDeviceData.setDataDeviceId(pageData.getDataDeviceId());
 		if (dataserviceDeviceData.getDataDeviceId().equals("")) {
 			return dataserviceDeviceDataService.findList(dataserviceDeviceData);
 		} else {
-			return dataserviceDeviceDataService.getDeviceDataByDeviceId(dataserviceDeviceData.getDataDeviceId());
+			return dataserviceDeviceDataService.pageData(dataserviceDeviceData.getDataDeviceId(), pageData.getPage(), pageData.getPageSize());
 		}
+	}
+
+	/**
+	 * 试验场-实时监测数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = "listRecentlyData")
+	@ResponseBody
+	public List<DataserviceDeviceData> getRecentDeviceData(PageData pageData) {
+		DataserviceDeviceData dataserviceDeviceData = new DataserviceDeviceData();
+		dataserviceDeviceData.setDataDeviceId(pageData.getDataDeviceId());
+		return dataserviceDeviceDataService.pageData(pageData.getOffSite(), pageData.getPageSize());
+	}
+
+	@Data
+	class PageData {
+		private String dataDeviceId;        // 设备编号
+		private Integer page;
+		private Integer pageSize;
+		private Integer offSite;	// 偏移量，有优先用偏移量，没有的话再用 page 和 pageSize 计算
 	}
 
 	/**
@@ -237,6 +260,17 @@ public class DataserviceDeviceDataController extends BaseController {
 	public Integer getNormalDataCount() {
 		String aaa = dataserviceDeviceDataService.getNormalDataCount()+"";
 		return dataserviceDeviceDataService.getNormalDataCount();
+	}
+
+	/**
+	 * 获取数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getDataCount"})
+	@ResponseBody
+	public Integer getDataCount(DataserviceDeviceData dataserviceDeviceData) {
+		Integer count = dataserviceDeviceDataService.getDataCount(dataserviceDeviceData.getDataDeviceId());
+		return count;
 	}
 
 	/**

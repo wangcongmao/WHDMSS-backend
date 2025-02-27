@@ -17,6 +17,7 @@ import com.jeesite.common.mybatis.mapper.query.QueryType;
 		@Column(name="id", attrName="id", label="主键", isPK=true),
 		@Column(name="structure_device_id", attrName="structureDeviceId", label="设备编号", queryType=QueryType.LIKE),
 		@Column(name="structure_data", attrName="structureData", label="设备数据结构", queryType=QueryType.LIKE),
+		@Column(name="data_type", attrName="dataType", label="类型"),
 	}, orderBy="a.id DESC"
 )
 public class DataserviceDeviceStructure extends DataEntity<DataserviceDeviceStructure> {
@@ -24,6 +25,7 @@ public class DataserviceDeviceStructure extends DataEntity<DataserviceDeviceStru
 	private static final long serialVersionUID = 1L;
 	private String structureDeviceId;		// 设备编号
 	private String structureData;		// 设备数据结构
+	private Integer dataType; //类型
 
 	public DataserviceDeviceStructure() {
 		this(null);
@@ -50,6 +52,14 @@ public class DataserviceDeviceStructure extends DataEntity<DataserviceDeviceStru
 
 	public void setStructureData(String structureData) {
 		this.structureData = structureData;
+	}
+
+	public Integer getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(Integer dataType) {
+		this.dataType = dataType;
 	}
 	
 }

@@ -50,6 +50,30 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	public List<DataserviceDeviceData> findList(DataserviceDeviceData dataserviceDeviceData) {
 		return super.findList(dataserviceDeviceData);
 	}
+
+	/**
+	 * 分页列表数据
+	 * @param
+	 * @return
+	 */
+	public List<DataserviceDeviceData> pageData(String dataDeviceId, Integer page, Integer pageSize) {
+		Integer offset = calculateOffset(page, pageSize);
+		return dataserviceDeviceDataDao.getPageData(dataDeviceId, offset, pageSize);
+	}
+
+	/**
+	 * 分页列表数据
+	 * @param
+	 * @return
+	 */
+	public List<DataserviceDeviceData> pageData(Integer offSite, Integer pageSize) {
+		return dataserviceDeviceDataDao.getPageData(offSite, pageSize);
+	}
+
+	// 计算分页的 OFFSET
+	Integer calculateOffset(Integer page, Integer pageSize) {
+		return (page - 1) * pageSize;
+	}
 	
 	/**
 	 * 保存数据（插入或更新）
@@ -143,4 +167,12 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
     public int getDeviceDateCounts(String deviceId, String formattedDate) {
 		return dataserviceDeviceDataDao.getDeviceDateCounts(deviceId, formattedDate);
     }
+
+	/**
+	 * 获取数据总数
+	 * @return
+	 */
+	public Integer getDataCount(String deviceId) {
+		return dataserviceDeviceDataDao.getDataCount(deviceId);
+	}
 }
