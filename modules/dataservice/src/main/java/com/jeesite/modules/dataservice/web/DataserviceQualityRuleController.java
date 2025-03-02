@@ -1,16 +1,16 @@
 package com.jeesite.modules.dataservice.web;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
+import com.jeesite.modules.dataservice.entity.DataservicePaltformDevice;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceDataService;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
+import com.jeesite.modules.dataservice.service.DataservicePaltformDeviceService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -44,7 +44,10 @@ public class DataserviceQualityRuleController extends BaseController {
 
 	@Resource
 	private DataserviceDeviceDataService dataserviceDeviceDataService;
-	
+
+	@Resource
+	private DataservicePaltformDeviceService dataservicePaltformDeviceService;
+
 	/**
 	 * 获取数据
 	 */
@@ -52,7 +55,7 @@ public class DataserviceQualityRuleController extends BaseController {
 	public DataserviceQualityRule get(String id, boolean isNewRecord) {
 		return dataserviceQualityRuleService.get(id, isNewRecord);
 	}
-	
+
 	/**
 	 * 查询列表
 	 */
@@ -62,7 +65,7 @@ public class DataserviceQualityRuleController extends BaseController {
 		model.addAttribute("dataserviceQualityRule", dataserviceQualityRule);
 		return "modules/dataservice/dataserviceQualityRuleList";
 	}
-	
+
 	/**
 	 * 查询列表数据
 	 */
@@ -109,6 +112,41 @@ public class DataserviceQualityRuleController extends BaseController {
 	}
 
 	/**
+	 * 返回设备ID列表
+	 */
+	@RequiresPermissions("dataservice:qualityRule:view")
+	@RequestMapping(value = "getNotDefinedDeviceID")
+	@ResponseBody
+	public List<Map<String, String>> getNotDefinedDeviceID(DataservicePaltformDevice dataservicePaltformDevice) {
+//		if (dataserviceDeviceStructure.getDataType() != null) {
+//			List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.findList(dataserviceDeviceStructure);
+//		}
+		List<DataserviceDeviceStructure> structures = dataserviceDeviceStructureService.list();
+		List<DataservicePaltformDevice> paltformDevices = dataservicePaltformDeviceService.list();
+		Set<String> set = new HashSet<>();
+		for (DataserviceDeviceStructure structure : structures) {
+			set.add(structure.getStructureDeviceId());
+		}
+		List<DataservicePaltformDevice> resultPaltformDevices = new ArrayList<>();
+		for (DataservicePaltformDevice paltformDevice : paltformDevices) {
+			if (!set.contains(paltformDevice.getDeviceName()) && paltformDevice.getDeviceType().equals("设备")) {
+				resultPaltformDevices.add(paltformDevice);
+			}
+		}
+
+
+		// 转换成前端需要的格式
+		List<Map<String, String>> result = resultPaltformDevices.stream().map(device -> {
+			Map<String, String> map = new HashMap<>();
+			map.put("label", device.getDeviceName()); // 设备编号作为 label
+			map.put("value", device.getDeviceName()); // 设备编号作为 value
+			return map;
+		}).collect(Collectors.toList());
+
+		return result;
+	}
+
+	/**
 	 * 查看编辑表单
 	 */
 	@RequiresPermissions("dataservice:qualityRule:view")
@@ -128,7 +166,7 @@ public class DataserviceQualityRuleController extends BaseController {
 		dataserviceQualityRuleService.save(dataserviceQualityRule);
 		return renderResult(Global.TRUE, text("保存qualityRule成功！"));
 	}
-	
+
 	/**
 	 * 删除数据
 	 */
@@ -151,5 +189,5 @@ public class DataserviceQualityRuleController extends BaseController {
 
 		return new HashMap<>();
 	}
-	
+
 }

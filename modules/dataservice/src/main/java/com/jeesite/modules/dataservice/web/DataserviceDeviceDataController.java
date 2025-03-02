@@ -108,8 +108,6 @@ public class DataserviceDeviceDataController extends BaseController {
 	@RequestMapping(value = "listRecentlyData")
 	@ResponseBody
 	public List<DataserviceDeviceData> getRecentDeviceData(PageData pageData) {
-		DataserviceDeviceData dataserviceDeviceData = new DataserviceDeviceData();
-		dataserviceDeviceData.setDataDeviceId(pageData.getDataDeviceId());
 		return dataserviceDeviceDataService.pageData(pageData.getOffSite(), pageData.getPageSize());
 	}
 

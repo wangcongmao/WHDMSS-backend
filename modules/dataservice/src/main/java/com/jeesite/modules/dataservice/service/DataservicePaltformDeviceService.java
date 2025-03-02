@@ -2,6 +2,7 @@ package com.jeesite.modules.dataservice.service;
 
 import java.util.List;
 
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
 import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,16 @@ public class DataservicePaltformDeviceService extends TreeService<DataservicePal
 	public DataservicePaltformDevice get(DataservicePaltformDevice dataservicePaltformDevice) {
 		return super.get(dataservicePaltformDevice);
 	}
+
+	/**
+	 * 获取所有数据
+	 * @param
+	 * @return
+	 */
+	public List<DataservicePaltformDevice> list() {
+		return dataservicePaltformDeviceDao.getAll();
+	}
+
 	
 	/**
 	 * 查询分页数据

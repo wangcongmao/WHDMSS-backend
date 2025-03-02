@@ -67,7 +67,7 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	 * @return
 	 */
 	public List<DataserviceDeviceData> pageData(Integer offSite, Integer pageSize) {
-		return dataserviceDeviceDataDao.getPageData(offSite, pageSize);
+		return dataserviceDeviceDataDao.getPageAllData(offSite, pageSize);
 	}
 
 	// 计算分页的 OFFSET
