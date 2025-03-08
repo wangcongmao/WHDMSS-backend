@@ -8,12 +8,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.alibaba.fastjson.JSONObject;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
 import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
 import com.jeesite.modules.dataservice.entity.DevicesDataQuality;
 import com.jeesite.modules.dataservice.entity.support.ConditionType;
-import com.jeesite.modules.dataservice.entity.support.ParamDataCondition;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceDataConditionService;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 import com.jeesite.modules.dataservice.service.DataserviceQualityRuleService;
