@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
+import com.jeesite.modules.dataservice.entity.*;
+import com.jeesite.modules.dataservice.service.*;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -20,8 +22,8 @@ import com.jeesite.common.collect.MapUtils;
 import com.jeesite.common.lang.StringUtils;
 import com.jeesite.common.idgen.IdGen;
 import com.jeesite.common.web.BaseController;
-import com.jeesite.modules.dataservice.entity.DataservicePaltformDevice;
-import com.jeesite.modules.dataservice.service.DataservicePaltformDeviceService;
+
+import javax.annotation.Resource;
 
 /**
  * platformDeviceController
@@ -34,7 +36,22 @@ public class DataservicePaltformDeviceController extends BaseController {
 
 	@Autowired
 	private DataservicePaltformDeviceService dataservicePaltformDeviceService;
-	
+
+	@Resource
+	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
+
+	@Resource
+	private DataserviceQualityRuleService dataserviceQualityRuleService;
+
+	@Resource
+	private DataserviceDeviceDataConditionService dataserviceDeviceDataConditionService;
+
+	@Resource
+	private DataserviceDeviceDataEverydayCountsService dataserviceDeviceDataEverydayCountsService;
+
+	@Resource
+	private DataserviceDeviceDataService dataserviceDeviceDataService;
+
 	/**
 	 * 获取数据
 	 */
@@ -52,7 +69,7 @@ public class DataservicePaltformDeviceController extends BaseController {
 		model.addAttribute("dataservicePaltformDevice", dataservicePaltformDevice);
 		return "modules/dataservice/dataservicePaltformDeviceIndex";
 	}
-	
+
 	/**
 	 * 查询列表
 	 */
@@ -62,7 +79,7 @@ public class DataservicePaltformDeviceController extends BaseController {
 		model.addAttribute("dataservicePaltformDevice", dataservicePaltformDevice);
 		return "modules/dataservice/dataservicePaltformDeviceList";
 	}
-	
+
 	/**
 	 * 查询列表数据
 	 */
@@ -109,7 +126,7 @@ public class DataservicePaltformDeviceController extends BaseController {
 		model.addAttribute("dataservicePaltformDevice", dataservicePaltformDevice);
 		return "modules/dataservice/dataservicePaltformDeviceForm";
 	}
-	
+
 	/**
 	 * 创建并初始化下一个节点信息，如：排序号、默认值
 	 */
@@ -143,10 +160,60 @@ public class DataservicePaltformDeviceController extends BaseController {
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataservicePaltformDevice dataservicePaltformDevice) {
+		// 先查出原名称
+		DataservicePaltformDevice dataservicePaltformDevice1 = dataservicePaltformDeviceService.get(dataservicePaltformDevice.getId());
 		dataservicePaltformDeviceService.save(dataservicePaltformDevice);
+		String beforeName = "";
+		if (dataservicePaltformDevice.getIsNewRecord() == false) {
+			beforeName = dataservicePaltformDevice1.getDeviceName();
+		}
+		String newName = dataservicePaltformDevice.getDeviceName();
+
+		// 如果修改名称的话修改数据结构的名
+		if (dataservicePaltformDevice.getIsNewRecord() == false) {
+			DataserviceDeviceStructure structureDeviceId = dataserviceDeviceStructureService.getByStructureDeviceId(beforeName);
+			structureDeviceId.setStructureDeviceId(newName);
+			dataserviceDeviceStructureService.save(structureDeviceId);
+		}
+		// 如果修改名称的话修改质量规则名
+		if (dataservicePaltformDevice.getIsNewRecord() == false) {
+			List<DataserviceQualityRule> ruleByDeviceId = dataserviceQualityRuleService.getRuleByDeviceId(beforeName);
+			for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
+				dataserviceQualityRule.setQualityDeviceId(newName);
+				dataserviceQualityRuleService.save(dataserviceQualityRule);
+			}
+		}
+		// 如果修改名称的话修改每天统计名
+		if (dataservicePaltformDevice.getIsNewRecord() == false) {
+			DataserviceDeviceDataEverydayCounts dataserviceDeviceDataEverydayCounts = new DataserviceDeviceDataEverydayCounts();
+			dataserviceDeviceDataEverydayCounts.setCountsDeviceId(beforeName);
+			List<DataserviceDeviceDataEverydayCounts> list = dataserviceDeviceDataEverydayCountsService.findList(dataserviceDeviceDataEverydayCounts);
+			for (DataserviceDeviceDataEverydayCounts deviceDataEverydayCounts : list) {
+				deviceDataEverydayCounts.setCountsDeviceId(newName);
+				dataserviceDeviceDataEverydayCountsService.save(deviceDataEverydayCounts);
+			}
+		}
+		// 修改数据状态名
+		if (dataservicePaltformDevice.getIsNewRecord() == false) {
+			DataserviceDeviceDataCondition dataserviceDeviceDataCondition = new DataserviceDeviceDataCondition();
+			dataserviceDeviceDataCondition.setStructureDeviceId(beforeName);
+			List<DataserviceDeviceDataCondition> list = dataserviceDeviceDataConditionService.findList(dataserviceDeviceDataCondition);
+			for (DataserviceDeviceDataCondition deviceDataCondition : list) {
+				deviceDataCondition.setStructureDeviceId(newName);
+				dataserviceDeviceDataConditionService.save(deviceDataCondition);
+			}
+		}
+		// 修改数据名
+		if (dataservicePaltformDevice.getIsNewRecord() == false) {
+			List<DataserviceDeviceData> deviceDataByDeviceId = dataserviceDeviceDataService.getDeviceDataByDeviceId(beforeName);
+			for (DataserviceDeviceData dataserviceDeviceData : deviceDataByDeviceId) {
+				dataserviceDeviceData.setDataDeviceId(newName);
+				dataserviceDeviceDataService.save(dataserviceDeviceData);
+			}
+		}
 		return renderResult(Global.TRUE, text("保存平台与设备成功！"));
 	}
-	
+
 	/**
 	 * 删除数据
 	 */
@@ -154,10 +221,53 @@ public class DataservicePaltformDeviceController extends BaseController {
 	@RequestMapping(value = "delete")
 	@ResponseBody
 	public String delete(DataservicePaltformDevice dataservicePaltformDevice) {
+		DataservicePaltformDevice dataservicePaltformDevice1 = dataservicePaltformDeviceService.get(dataservicePaltformDevice.getId());
+		String beforeName = dataservicePaltformDevice1.getDeviceName();
 		dataservicePaltformDeviceService.delete(dataservicePaltformDevice);
+		// 删除设备，要求，1.删除设备 2. 删除设备数据 3.删除设备数据结构 4.删除设备每天数据质量 5.删除设备各字段数据质量
+		// 如果修改名称的话修改数据结构的名
+		if (dataservicePaltformDevice.getId() != null) {
+			DataserviceDeviceStructure structureDeviceId = dataserviceDeviceStructureService.getByStructureDeviceId(beforeName);
+			if (structureDeviceId != null) {
+				dataserviceDeviceStructureService.delete(structureDeviceId);
+			}
+		}
+		// 如果修改名称的话修改质量规则名 todo 可以优化
+		if (dataservicePaltformDevice.getId() != null) {
+			List<DataserviceQualityRule> ruleByDeviceId = dataserviceQualityRuleService.getRuleByDeviceId(beforeName);
+			for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
+				dataserviceQualityRuleService.delete(dataserviceQualityRule);
+			}
+		}
+		// 如果修改名称的话修改每天统计名
+		if (dataservicePaltformDevice.getId() != null) {
+			DataserviceDeviceDataEverydayCounts dataserviceDeviceDataEverydayCounts = new DataserviceDeviceDataEverydayCounts();
+			dataserviceDeviceDataEverydayCounts.setCountsDeviceId(beforeName);
+			List<DataserviceDeviceDataEverydayCounts> list = dataserviceDeviceDataEverydayCountsService.findList(dataserviceDeviceDataEverydayCounts);
+			for (DataserviceDeviceDataEverydayCounts deviceDataEverydayCounts : list) {
+				dataserviceDeviceDataEverydayCountsService.delete(deviceDataEverydayCounts);
+			}
+		}
+		// 修改数据状态名
+		if (dataservicePaltformDevice.getId() != null) {
+			DataserviceDeviceDataCondition dataserviceDeviceDataCondition = new DataserviceDeviceDataCondition();
+			dataserviceDeviceDataCondition.setStructureDeviceId(beforeName);
+			List<DataserviceDeviceDataCondition> list = dataserviceDeviceDataConditionService.findList(dataserviceDeviceDataCondition);
+			for (DataserviceDeviceDataCondition deviceDataCondition : list) {
+				dataserviceDeviceDataConditionService.delete(deviceDataCondition);
+			}
+		}
+		// 修改数据名
+		if (dataservicePaltformDevice.getId() != null) {
+			List<DataserviceDeviceData> deviceDataByDeviceId = dataserviceDeviceDataService.getDeviceDataByDeviceId(beforeName);
+			for (DataserviceDeviceData dataserviceDeviceData : deviceDataByDeviceId) {
+				dataserviceDeviceDataService.deleteByDeviceId(dataserviceDeviceData.getDataDeviceId());
+			}
+		}
+
 		return renderResult(Global.TRUE, text("删除平台与设备成功！"));
 	}
-	
+
 	/**
 	 * 获取树结构数据
 	 * @param excludeCode 排除的Code
@@ -220,5 +330,5 @@ public class DataservicePaltformDeviceController extends BaseController {
 		List<DataservicePaltformDevice> all = dataservicePaltformDeviceService.getAll();
 		return all;
 	}
-	
+
 }

@@ -3,6 +3,7 @@ package com.jeesite.modules.dataservice.dao;
 import com.jeesite.common.dao.CrudDao;
 import com.jeesite.common.mybatis.annotation.MyBatisDao;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceData;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
@@ -53,6 +54,12 @@ public interface DataserviceDeviceDataDao extends CrudDao<DataserviceDeviceData>
     List<DataserviceDeviceData> getPageAllData(@Param("offset")Integer offset, @Param("pageSize")Integer pageSize);
 
     // 获取总数
-    @Select("SELECT count(*) FROM dataservice_device_data WHERE data_device_id = #{dataDeviceId}")
+    @Select("SELECT count(*) FROM dataservice_device_data WHERE data_device_id = #{deviceId}")
     Integer getDataCount(String deviceId);
+
+    @Delete("delete from dataservice_device_data where data_device_id = #{dataDeviceId}")
+    void deleteByDeviceId(String dataDeviceId);
+
+    @Select("select * from dataservice_device_data where data_device_id = #{qualityDeviceId}")
+    List<DataserviceDeviceData> getAllByDeviceId(String qualityDeviceId);
 }

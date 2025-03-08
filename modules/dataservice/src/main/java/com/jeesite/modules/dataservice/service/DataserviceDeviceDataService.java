@@ -105,6 +105,10 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 		super.delete(dataserviceDeviceData);
 	}
 
+	public void deleteByDeviceId(String deviceId) {
+		dataserviceDeviceDataDao.deleteByDeviceId(deviceId);
+	}
+
 	// 根据设备编号获取多个设备数据
 	public List<DataserviceDeviceData> getDeviceDataByDeviceId(String dataDeviceId) {
 		return dataserviceDeviceDataDao.getByDeviceId(dataDeviceId);
@@ -174,5 +178,9 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	 */
 	public Integer getDataCount(String deviceId) {
 		return dataserviceDeviceDataDao.getDataCount(deviceId);
+	}
+
+	public List<DataserviceDeviceData> getAllByDeviceId(String qualityDeviceId) {
+		return dataserviceDeviceDataDao.getAllByDeviceId(qualityDeviceId);
 	}
 }

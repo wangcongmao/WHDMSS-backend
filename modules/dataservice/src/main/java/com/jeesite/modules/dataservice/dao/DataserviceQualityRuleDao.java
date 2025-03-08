@@ -3,6 +3,7 @@ package com.jeesite.modules.dataservice.dao;
 import com.jeesite.common.dao.CrudDao;
 import com.jeesite.common.mybatis.annotation.MyBatisDao;
 import com.jeesite.modules.dataservice.entity.DataserviceQualityRule;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -24,4 +25,7 @@ public interface DataserviceQualityRuleDao extends CrudDao<DataserviceQualityRul
      */
     @Select("SELECT * FROM dataservice_quality_rule")
     List<DataserviceQualityRule> listAll();
+
+    @Delete("delete from dataservice_quality_rule where quality_device_id = #{deviceId}")
+    void deleteByDeviceId(String deviceId);
 }

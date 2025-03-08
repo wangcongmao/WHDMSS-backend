@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceData;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
 import com.jeesite.modules.dataservice.entity.DataservicePaltformDevice;
 import com.jeesite.modules.dataservice.service.DataserviceDeviceDataService;
@@ -43,7 +44,7 @@ public class DataserviceQualityRuleController extends BaseController {
 	private DataserviceDeviceStructureService dataserviceDeviceStructureService;
 
 	@Resource
-	private DataserviceDeviceDataService dataserviceDeviceDataService;
+	private DataserviceDeviceDataController dataserviceDeviceDataController;
 
 	@Resource
 	private DataservicePaltformDeviceService dataservicePaltformDeviceService;
@@ -164,6 +165,12 @@ public class DataserviceQualityRuleController extends BaseController {
 	@ResponseBody
 	public String save(@Validated DataserviceQualityRule dataserviceQualityRule) {
 		dataserviceQualityRuleService.save(dataserviceQualityRule);
+		if (dataserviceQualityRule.getIsNewRecord() == false) {
+			List<DataserviceDeviceData> allByDeviceId = dataserviceDeviceDataController.getAllByDeviceId(dataserviceQualityRule.getQualityDeviceId());
+			for (DataserviceDeviceData dataserviceDeviceData : allByDeviceId) {
+				dataserviceDeviceDataController.save(dataserviceDeviceData);
+			}
+		}
 		return renderResult(Global.TRUE, text("保存qualityRule成功！"));
 	}
 
@@ -175,6 +182,10 @@ public class DataserviceQualityRuleController extends BaseController {
 	@ResponseBody
 	public String delete(DataserviceQualityRule dataserviceQualityRule) {
 		dataserviceQualityRuleService.delete(dataserviceQualityRule);
+		List<DataserviceDeviceData> allByDeviceId = dataserviceDeviceDataController.getAllByDeviceId(dataserviceQualityRule.getQualityDeviceId());
+		for (DataserviceDeviceData dataserviceDeviceData : allByDeviceId) {
+			dataserviceDeviceDataController.save(dataserviceDeviceData);
+		}
 		return renderResult(Global.TRUE, text("删除qualityRule成功！"));
 	}
 

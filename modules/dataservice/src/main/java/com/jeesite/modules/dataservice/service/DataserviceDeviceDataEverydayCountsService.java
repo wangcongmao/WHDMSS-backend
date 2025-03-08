@@ -142,4 +142,8 @@ public class DataserviceDeviceDataEverydayCountsService extends CrudService<Data
 	public List<DataserviceDeviceDataEverydayCountsVO> getAll() {
 		 return dataserviceDeviceDataEverydayCountsDao.getAll();
 	}
+
+    public void deleteByDeviceId(String deviceId) {
+		dataserviceDeviceDataEverydayCountsDao.deleteByDeviceId(deviceId);
+    }
 }

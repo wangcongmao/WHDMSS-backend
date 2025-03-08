@@ -98,5 +98,8 @@ public class DataserviceQualityRuleService extends CrudService<DataserviceQualit
 	public List<DataserviceQualityRule> listAll() {
 		return dataserviceQualityRuleDao.listAll();
 	}
-	
+
+    public void deleteByDeviceId(String deviceId) {
+		dataserviceQualityRuleDao.deleteByDeviceId(deviceId);
+    }
 }

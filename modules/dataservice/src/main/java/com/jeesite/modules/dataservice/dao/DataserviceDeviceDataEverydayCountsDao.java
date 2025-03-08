@@ -4,6 +4,7 @@ import com.jeesite.common.dao.CrudDao;
 import com.jeesite.common.mybatis.annotation.MyBatisDao;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceDataEverydayCounts;
 import com.jeesite.modules.dataservice.entity.vo.DataserviceDeviceDataEverydayCountsVO;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -18,4 +19,7 @@ public interface DataserviceDeviceDataEverydayCountsDao extends CrudDao<Dataserv
 
     @Select("SELECT counts_device_id, counts_date, counts_data_count  FROM dataservice_device_data_everyday_counts dddec")
     List<DataserviceDeviceDataEverydayCountsVO> getAll();
+
+    @Delete("delete from dataservice_device_data_everyday_counts where counts_device_id = #{deviceId}")
+    void deleteByDeviceId(String deviceId);
 }

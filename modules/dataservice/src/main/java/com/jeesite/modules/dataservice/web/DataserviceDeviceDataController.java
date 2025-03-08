@@ -111,6 +111,10 @@ public class DataserviceDeviceDataController extends BaseController {
 		return dataserviceDeviceDataService.pageData(pageData.getOffSite(), pageData.getPageSize());
 	}
 
+	public List<DataserviceDeviceData> getAllByDeviceId(String qualityDeviceId) {
+		return dataserviceDeviceDataService.getAllByDeviceId(qualityDeviceId);
+	}
+
 	@Data
 	class PageData {
 		private String dataDeviceId;        // 设备编号

@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceDataCondition;
-import com.jeesite.modules.dataservice.service.DataserviceDeviceDataConditionService;
+import com.jeesite.modules.dataservice.service.*;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,7 +23,6 @@ import com.jeesite.common.config.Global;
 import com.jeesite.common.entity.Page;
 import com.jeesite.common.web.BaseController;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceStructure;
-import com.jeesite.modules.dataservice.service.DataserviceDeviceStructureService;
 
 /**
  * deviceStructureController
@@ -41,7 +40,13 @@ public class DataserviceDeviceStructureController extends BaseController {
 	private DataserviceDeviceDataConditionService dataserviceDeviceDataConditionService;
 
 	@Resource
-	private DataserviceDeviceDataConditionController dataserviceDeviceDataConditionController;
+	private DataserviceDeviceDataEverydayCountsService dataserviceDeviceDataEverydayCountsService;
+
+	@Resource
+	private DataserviceDeviceDataService dataserviceDeviceDataService;
+
+	@Resource
+	private DataserviceQualityRuleService dataserviceQualityRuleService;
 
 
 	/**
@@ -78,11 +83,11 @@ public class DataserviceDeviceStructureController extends BaseController {
 			String[] strings = structureData.split("prm");
 			for (int i1 = 1; i1 < strings.length; i1++) {
 				// ":"a","type":"number"},{"
-				String[] strings1 = strings[i1].split("type");
+				String[] strings1 = strings[i1].split("\"type\"");
 				// ":"a","
 				String substring1 = strings1[0].substring(3, strings1[0].lastIndexOf(",")-1);
 				// ":"number"},{"
-				String substring2 = strings1[1].substring(3, strings1[1].lastIndexOf("}") - 1);
+				String substring2 = strings1[1].substring(2, strings1[1].lastIndexOf("}") - 1);
 				strings[i1] = substring1 + ":" + substring2;
 				if (i1 != strings.length-1) {
 					strings[i1] += " | ";
@@ -161,6 +166,7 @@ public class DataserviceDeviceStructureController extends BaseController {
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceStructure dataserviceDeviceStructure) {
+		// 如果修改数据规则名称 数据结构重新保存，数据每日质量？，数据参数质量？重新统计？，为了方便，不允许修改
 		dataserviceDeviceStructureService.save(dataserviceDeviceStructure);
 		String structureData = dataserviceDeviceStructure.getStructureData();
 		structureData = structureData.substring(11, structureData.length()-2);
@@ -192,8 +198,6 @@ public class DataserviceDeviceStructureController extends BaseController {
 //			dataserviceDeviceDataCondition2.setId(generateRandomId()+"");
 			dataserviceDeviceDataConditionService.insertDeviceDataCondition(dataserviceDeviceDataCondition2);
 		}
-
-
 		return renderResult(Global.TRUE, text("保存设备数据结构成功！"));
 	}
 
@@ -210,8 +214,12 @@ public class DataserviceDeviceStructureController extends BaseController {
 	@RequestMapping(value = "delete")
 	@ResponseBody
 	public String delete(DataserviceDeviceStructure dataserviceDeviceStructure) {
+		String deviceId = dataserviceDeviceStructure.getStructureDeviceId();
 		dataserviceDeviceStructureService.delete(dataserviceDeviceStructure);
 		dataserviceDeviceDataConditionService.deleteByStructureDeviceId(dataserviceDeviceStructure.getStructureDeviceId());
+		dataserviceDeviceDataEverydayCountsService.deleteByDeviceId(deviceId);
+		dataserviceDeviceDataService.deleteByDeviceId(deviceId);
+		dataserviceQualityRuleService.deleteByDeviceId(deviceId);
 		return renderResult(Global.TRUE, text("删除设备数据结构成功！"));
 	}
 
