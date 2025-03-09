@@ -29,6 +29,7 @@ import com.jeesite.common.mybatis.mapper.query.QueryType;
 		@Column(name="device_maketime", attrName="deviceMaketime", label="布放时间", isUpdateForce=true),
 		@Column(name="device_repairtime", attrName="deviceRepairtime", label="下次检修时间", isUpdateForce=true),
 		@Column(name="device_mapposition", attrName="deviceMapposition", label="地图位置"),
+		@Column(name="device_depth", attrName="deviceDepth", label="设备深度"),
 	}, orderBy="a.tree_sorts, a.id"
 )
 public class DataservicePaltformDevice extends TreeEntity<DataservicePaltformDevice> {
@@ -41,6 +42,8 @@ public class DataservicePaltformDevice extends TreeEntity<DataservicePaltformDev
 	private Date deviceMaketime;		// 布放时间
 	private Date deviceRepairtime;		// 下次检修时间
 	private String deviceMapposition;		// 地图位置
+
+	private String deviceDepth; 	// 设备深度
 
 	public DataservicePaltformDevice() {
 		this(null);
@@ -123,6 +126,15 @@ public class DataservicePaltformDevice extends TreeEntity<DataservicePaltformDev
 
 	public void setDeviceMapposition(String deviceMapposition) {
 		this.deviceMapposition = deviceMapposition;
+	}
+
+	@Size(min=0, max=100, message="设备深度长度不能超过 100 个字符")
+	public String getDeviceDepth() {
+		return deviceDepth;
+	}
+
+	public void setDeviceDepth(String deviceDepth) {
+		this.deviceDepth = deviceDepth;
 	}
 	
 }

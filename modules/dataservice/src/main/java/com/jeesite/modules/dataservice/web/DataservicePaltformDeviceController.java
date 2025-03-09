@@ -111,6 +111,9 @@ public class DataservicePaltformDeviceController extends BaseController {
 		if (StringUtils.isNotBlank(dataservicePaltformDevice.getDeviceMapposition())){
 			dataservicePaltformDevice.setParentCode(null);
 		}
+		if (StringUtils.isNotBlank(dataservicePaltformDevice.getDeviceDepth())) {
+			dataservicePaltformDevice.setDeviceDepth(null);
+		}
 		List<DataservicePaltformDevice> list = dataservicePaltformDeviceService.findList(dataservicePaltformDevice);
 		return list;
 	}
