@@ -106,6 +106,9 @@ public class DataserviceDeviceDataConditionController extends BaseController {
 	@RequestMapping(value = {"getParamConditionByDeviceId", ""})
 	@ResponseBody
 	public List<ParamDataCondition> getParamConditionByDeviceId(String dataDeviceId) {
+		if (dataDeviceId==null || dataDeviceId.equals("")) {
+			return null;
+		}
 		return dataserviceDeviceDataConditionService.getParamConditionByDeviceId(dataDeviceId);
 	}
 	

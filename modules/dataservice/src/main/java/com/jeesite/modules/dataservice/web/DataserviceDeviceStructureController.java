@@ -7,12 +7,16 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.jeesite.modules.dataservice.entity.DataserviceDeviceDataCondition;
+import com.jeesite.modules.dataservice.entity.DataserviceDeviceaksk;
 import com.jeesite.modules.dataservice.service.*;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.DigestUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +51,14 @@ public class DataserviceDeviceStructureController extends BaseController {
 
 	@Resource
 	private DataserviceQualityRuleService dataserviceQualityRuleService;
+
+	@Resource
+	private DataserviceDeviceakskService dataserviceDeviceakskService;
+
+	/**
+	 * 盐值，混淆密码
+	 */
+	private static final String SALT = "wangcm";
 
 
 	/**
@@ -161,11 +173,18 @@ public class DataserviceDeviceStructureController extends BaseController {
 	 * 每一个 param 对应有三个结构初始化 nums 为 0
 	 * {"structs":[{"prm":"a","type":"number"},{"prm":"b","type":"string"},{"prm":"c","type":"date"}]}
 	 * {"prm":"a","type":"number"},{"prm":"b","type":"string"},{"prm":"c","type":"date"}
+	 * todo:修改数据结构，data_condition 表需要重新统计
 	 */
 	@RequiresPermissions("dataservice:deviceStructure:edit")
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceStructure dataserviceDeviceStructure) {
+
+		if (!dataserviceDeviceStructure.getIsNewRecord()) {
+			// 不能修改，因为设备数据已经固定了
+			return renderResult("refuse", "禁止修改设备数据结构，请删除后新建，注意删除后改数据结构下的质量规则及数据会被删除");
+		}
+
 		// 如果修改数据规则名称 数据结构重新保存，数据每日质量？，数据参数质量？重新统计？，为了方便，不允许修改
 		dataserviceDeviceStructureService.save(dataserviceDeviceStructure);
 		String structureData = dataserviceDeviceStructure.getStructureData();
@@ -221,6 +240,45 @@ public class DataserviceDeviceStructureController extends BaseController {
 		dataserviceDeviceDataService.deleteByDeviceId(deviceId);
 		dataserviceQualityRuleService.deleteByDeviceId(deviceId);
 		return renderResult(Global.TRUE, text("删除设备数据结构成功！"));
+	}
+
+	/**
+	 * 生成 ak，sk（或重新生成）
+	 */
+	@RequiresPermissions("dataservice:deviceStructure:edit")
+	@RequestMapping(value = "createAkSk")
+	@ResponseBody
+	public String createAkSk(DataserviceDeviceStructure dataserviceDeviceStructure) {
+		String deviceId = dataserviceDeviceStructure.getStructureDeviceId();
+
+		dataserviceDeviceakskService.deleteByDeviceId(deviceId);
+
+		// 3. 分配 accessKey、secretKey
+		String accessKey = DigestUtil.md5Hex(SALT+deviceId+ RandomUtil.randomNumbers(5));
+		String secretKey = DigestUtil.md5Hex(SALT+deviceId+ RandomUtil.randomNumbers(8));
+		DataserviceDeviceaksk dataserviceDeviceaksk = new DataserviceDeviceaksk();
+		dataserviceDeviceaksk.setStructureDeviceId(deviceId);
+		dataserviceDeviceaksk.setAccesskey(accessKey);
+		dataserviceDeviceaksk.setSecretkey(secretKey);
+
+		dataserviceDeviceakskService.save(dataserviceDeviceaksk);
+
+		return renderResult(Global.TRUE, text("创建 ak sk 成功"));
+	}
+
+
+	/**
+	 * 查看 ak，sk
+	 */
+	@RequiresPermissions("dataservice:deviceStructure:edit")
+	@RequestMapping(value = "getAkSk")
+	@ResponseBody
+	public DataserviceDeviceaksk getAkSk(DataserviceDeviceStructure dataserviceDeviceStructure) {
+		String deviceId = dataserviceDeviceStructure.getStructureDeviceId();
+
+		DataserviceDeviceaksk deviceaksk = dataserviceDeviceakskService.getById(deviceId);
+
+		return deviceaksk;
 	}
 
 }

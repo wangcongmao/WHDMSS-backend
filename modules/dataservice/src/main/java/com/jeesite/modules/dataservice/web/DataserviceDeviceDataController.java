@@ -67,6 +67,7 @@ public class DataserviceDeviceDataController extends BaseController {
 
 	@Autowired
 	private StandardServletMultipartResolver multipartResolver;
+
 	/**
 	 * 上传Excel文件并导入数据
 	 */
@@ -165,6 +166,9 @@ public class DataserviceDeviceDataController extends BaseController {
 	@RequestMapping(value = "listRecentlyData")
 	@ResponseBody
 	public List<DataserviceDeviceData> getRecentDeviceData(PageData pageData) {
+		if (pageData.getOffSite() == null || pageData.getPageSize() == null) {
+			return null;
+		}
 		return dataserviceDeviceDataService.pageData(pageData.getOffSite(), pageData.getPageSize());
 	}
 
@@ -177,7 +181,7 @@ public class DataserviceDeviceDataController extends BaseController {
 		private String dataDeviceId;        // 设备编号
 		private Integer page;
 		private Integer pageSize;
-		private Integer offSite;	// 偏移量，有优先用偏移量，没有的话再用 page 和 pageSize 计算
+		private Integer offSite;    // 偏移量，有优先用偏移量，没有的话再用 page 和 pageSize 计算
 	}
 
 	/**
@@ -197,183 +201,201 @@ public class DataserviceDeviceDataController extends BaseController {
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceData dataserviceDeviceData) {
+		if (dataserviceDeviceData == null) {
+			return "params error, dataserviceDeviceData can't be null";
+		}
+		if (dataserviceDeviceData.getDataDeviceId() == null) {
+			return "params error, DataDeviceId can't be null";
+		}
 		DataserviceDeviceStructure structureDevice = dataserviceDeviceStructureService.getByStructureDeviceId(dataserviceDeviceData.getDataDeviceId());
+		if (structureDevice.getStructureData() == null) {
+			return "params error, StructureData can't be null";
+		}
 		String structureData = structureDevice.getStructureData();
-		structureData = structureData.substring(11, structureData.length()-2);
-		String[] stringsa = structureData.split("\"prm\":\"");
-		for (int i = 1; i < stringsa.length; i++) {
-			String paramName = stringsa[i].substring(0, stringsa[i].indexOf('"'));
-			dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), paramName, 0);
-		}
 
-		// 获取该设备的所有质量规则
-		List<DataserviceQualityRule> ruleByDeviceId = dataserviceQualityRuleService.getRuleByDeviceId(dataserviceDeviceData.getDataDeviceId());
-		Map<String, String> data = new HashMap<>();
+		try {
 
-		// 解析设备数据
-		String dataDeviceData = dataserviceDeviceData.getDataDeviceData();
-		dataDeviceData = dataDeviceData.substring(1, dataDeviceData.length() - 1); // 去掉首尾的括号
-		String[] strings = dataDeviceData.split(",");
+			structureData = structureData.substring(11, structureData.length() - 2);
+			String[] stringsa = structureData.split("\"prm\":\"");
+			for (int i = 1; i < stringsa.length; i++) {
+				String paramName = stringsa[i].substring(0, stringsa[i].indexOf('"'));
+				dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), paramName, 0);
+			}
 
-		// 将设备数据的各项参数存入 Map
-		for (String string : strings) {
-			String[] strings1 = string.split(": ");
-			data.put(strings1[0], strings1[1].substring(1, strings1[1].length()-1));
-		}
+			// 获取该设备的所有质量规则
+			List<DataserviceQualityRule> ruleByDeviceId = dataserviceQualityRuleService.getRuleByDeviceId(dataserviceDeviceData.getDataDeviceId());
+			Map<String, String> data = new HashMap<>();
 
-		// 遍历每条质量规则进行验证
-		for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
-			String qualityRule = dataserviceQualityRule.getQualityRule();
-			String status = "0";
+			// 解析设备数据
+			String dataDeviceData = dataserviceDeviceData.getDataDeviceData();
+			dataDeviceData = dataDeviceData.substring(1, dataDeviceData.length() - 1); // 去掉首尾的括号
+			String[] strings = dataDeviceData.split(",");
 
-			// 分割 qualityRule，得到结构体部分
-			String[] ruleParts = qualityRule.split("\\{");
+			// 将设备数据的各项参数存入 Map
+			for (String string : strings) {
+				String[] strings1 = string.split(": ");
+				data.put(strings1[0], strings1[1].substring(1, strings1[1].length() - 1));
+			}
 
-			// 规则从第一个 "{" 后开始，逐条解析每个参数
-			for (int i = 2; i < ruleParts.length; i++) {
-				// 只解析从第2部分开始的内容
-				String rulePart = ruleParts[i];
+			// 遍历每条质量规则进行验证
+			for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
+				String qualityRule = dataserviceQualityRule.getQualityRule();
+				String status = "0";
 
-				// 提取param、comparison、value值
-				String param = extractValue(rulePart, "param");
-				String comparison = extractValue(rulePart, "comparison");
-				String value = extractValue(rulePart, "value");
+				// 分割 qualityRule，得到结构体部分
+				String[] ruleParts = qualityRule.split("\\{");
 
-				// 确保获取到有效的param值
-				if (data.containsKey(param)) {
-					String s = data.get(param);
+				// 规则从第一个 "{" 后开始，逐条解析每个参数
+				for (int i = 2; i < ruleParts.length; i++) {
+					// 只解析从第2部分开始的内容
+					String rulePart = ruleParts[i];
 
-					// 根据comparison进行相应的判断
-					boolean isValid = false;
-					try {
-						Double paramValue = Double.parseDouble(s); // 转换为数字进行比较
-						Double intValue = Double.parseDouble(value);
+					// 提取param、comparison、value值
+					String param = extractValue(rulePart, "param");
+					String comparison = extractValue(rulePart, "comparison");
+					String value = extractValue(rulePart, "value");
 
-						switch (comparison) {
-							case ">":
-								isValid = paramValue > intValue;
-								break;
-							case "<":
-								isValid = paramValue < intValue;
-								break;
-							case "=":
-								isValid = paramValue == intValue;
-								break;
-							default:
-								// 如果遇到不支持的比较符号
-								throw new IllegalArgumentException("不支持的比较符号: " + comparison);
-						}
+					// 确保获取到有效的param值
+					if (data.containsKey(param)) {
+						String s = data.get(param);
 
-						// 如果校验不通过，标记为无效并保存
-						if (!isValid) {
-							dataserviceDeviceData.setStatus(ConditionType.ABNORMAL.getCode());
+						// 根据comparison进行相应的判断
+						boolean isValid = false;
+						try {
+							Double paramValue = Double.parseDouble(s); // 转换为数字进行比较
+							Double intValue = Double.parseDouble(value);
+
+							switch (comparison) {
+								case ">":
+									isValid = paramValue > intValue;
+									break;
+								case "<":
+									isValid = paramValue < intValue;
+									break;
+								case "=":
+									isValid = paramValue == intValue;
+									break;
+								default:
+									// 如果遇到不支持的比较符号
+									throw new IllegalArgumentException("不支持的比较符号: " + comparison);
+							}
+
+							// 如果校验不通过，标记为无效并保存
+							if (!isValid) {
+								dataserviceDeviceData.setStatus(ConditionType.ABNORMAL.getCode());
+								dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), param, 2);
+								dataserviceDeviceDataConditionService.decrementNums(dataserviceDeviceData.getDataDeviceId(), param, 0);
+							}
+
+						} catch (NumberFormatException e) {
+							// 解析数字失败，标记为无效并保存
 							dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), param, 2);
 							dataserviceDeviceDataConditionService.decrementNums(dataserviceDeviceData.getDataDeviceId(), param, 0);
+							dataserviceDeviceData.setStatus(ConditionType.ABNORMAL.getCode());
+
 						}
-
-					} catch (NumberFormatException e) {
-						// 解析数字失败，标记为无效并保存
-						dataserviceDeviceDataConditionService.incrementNums(dataserviceDeviceData.getDataDeviceId(), param, 2);
-						dataserviceDeviceDataConditionService.decrementNums(dataserviceDeviceData.getDataDeviceId(), param, 0);
-						dataserviceDeviceData.setStatus(ConditionType.ABNORMAL.getCode());
-
 					}
 				}
 			}
+		} catch (Exception e) {
+			return "params error, StructureData don't match Device Data Structure";
 		}
 
-		// 所有规则验证通过后保存数据
-		dataserviceDeviceDataService.save(dataserviceDeviceData);
-		return renderResult(Global.TRUE, text("保存deviceData成功！"));
-	}
-
-	private String extractValue(String input, String key) {
-		String startDelimiter = key + "\":\"";  // 找到对应键的开始部分
-		int startIndex = input.indexOf(startDelimiter);
-		if (startIndex == -1) return "";  // 如果找不到，返回空字符串
-
-		int endIndex = input.indexOf("\"", startIndex + startDelimiter.length());  // 找到值的结束部分
-		if (endIndex == -1) return "";  // 如果没有找到结束位置，返回空字符串
-
-		// 返回提取的值
-		return input.substring(startIndex + startDelimiter.length(), endIndex);
-	}
-
-	/**
-	 * 删除数据
-	 */
-	@RequiresPermissions("dataservice:deviceData:edit")
-	@RequestMapping(value = "delete")
-	@ResponseBody
-	public String delete(DataserviceDeviceData dataserviceDeviceData) {
-		dataserviceDeviceDataService.delete(dataserviceDeviceData);
-		return renderResult(Global.TRUE, text("删除deviceData成功！"));
-	}
-
-	/**
-	 * 获取正常数据总数
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@GetMapping(value = {"getNormalDataCount"})
-	@ResponseBody
-	public Integer getNormalDataCount() {
-		String aaa = dataserviceDeviceDataService.getNormalDataCount()+"";
-		return dataserviceDeviceDataService.getNormalDataCount();
-	}
-
-	/**
-	 * 获取数据总数
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@GetMapping(value = {"getDataCount"})
-	@ResponseBody
-	public Integer getDataCount(DataserviceDeviceData dataserviceDeviceData) {
-		Integer count = dataserviceDeviceDataService.getDataCount(dataserviceDeviceData.getDataDeviceId());
-		return count;
-	}
-
-	/**
-	 * 获取可疑数据总数
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@GetMapping(value = {"getUncertainDataCount", ""})
-	@ResponseBody
-	public Integer getUncertainDataCount() {
-		return dataserviceDeviceDataService.getUncertainDataCount();
-	}
-
-	/**
-	 * 获取异常数据总数
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@GetMapping(value = {"getErrorDataCount", ""})
-	@ResponseBody
-	public Integer getErrorDataCount() {
-		return dataserviceDeviceDataService.getErrorDataCount();
-	}
-
-	/**
-	 * 获取所有设备数据质量情况
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@RequestMapping(value = {"getDeviceDataQualityCount", ""})
-	@ResponseBody
-	public List<DevicesDataQuality> getDeviceDataQualityCount(String dataDeviceId) {
-		List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
-		List<DevicesDataQuality> res = new ArrayList<>();
-		for (DataserviceDeviceStructure dataserviceDeviceStructure : list) {
-			DevicesDataQuality devicesDataQuality = new DevicesDataQuality();
-			Integer deviceNormalDataCount = dataserviceDeviceDataService.getDeviceNormalDataCount(dataserviceDeviceStructure.getStructureDeviceId());
-			Integer deviceUncertainDataCount = dataserviceDeviceDataService.getDeviceUncertainDataCount(dataserviceDeviceStructure.getStructureDeviceId());
-			Integer deviceErrorDataCount = dataserviceDeviceDataService.getDeviceErrorDataCount(dataserviceDeviceStructure.getStructureDeviceId());
-			devicesDataQuality.setName(dataserviceDeviceStructure.getStructureDeviceId());
-			devicesDataQuality.setNormalCount(deviceNormalDataCount);
-			devicesDataQuality.setUncertainCount(deviceUncertainDataCount);
-			devicesDataQuality.setErrorCount(deviceErrorDataCount);
-			res.add(new DevicesDataQuality(devicesDataQuality));
+			// 所有规则验证通过后保存数据
+			dataserviceDeviceDataService.save(dataserviceDeviceData);
+			return renderResult(Global.TRUE, text("保存deviceData成功！"));
 		}
-		return res;
-	}
+
+		private String extractValue(String input, String key) {
+			String startDelimiter = key + "\":\"";  // 找到对应键的开始部分
+			int startIndex = input.indexOf(startDelimiter);
+			if (startIndex == -1) return "";  // 如果找不到，返回空字符串
+
+			int endIndex = input.indexOf("\"", startIndex + startDelimiter.length());  // 找到值的结束部分
+			if (endIndex == -1) return "";  // 如果没有找到结束位置，返回空字符串
+
+			// 返回提取的值
+			return input.substring(startIndex + startDelimiter.length(), endIndex);
+		}
+
+		/**
+		 * 删除数据
+		 * 默认不能删数据，此接口未使用，若要使用删除接口，需要添加删除数据时对质量数据数量的修改
+		 */
+		@RequiresPermissions("dataservice:deviceData:edit")
+		@RequestMapping(value = "delete")
+		@ResponseBody
+		public String delete(DataserviceDeviceData dataserviceDeviceData) {
+			dataserviceDeviceDataService.delete(dataserviceDeviceData);
+			return renderResult(Global.TRUE, text("删除deviceData成功！"));
+		}
+
+		/**
+		 * 获取正常数据总数
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@GetMapping(value = {"getNormalDataCount"})
+		@ResponseBody
+		public Integer getNormalDataCount() {
+			return dataserviceDeviceDataService.getNormalDataCount();
+		}
+
+		/**
+		 * 获取数据总数
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@GetMapping(value = {"getDataCount"})
+		@ResponseBody
+		public Integer getDataCount(DataserviceDeviceData dataserviceDeviceData) {
+			if (dataserviceDeviceData == null || dataserviceDeviceData.getDataDeviceId() == null) {
+				return 0;
+			}
+			Integer count = dataserviceDeviceDataService.getDataCount(dataserviceDeviceData.getDataDeviceId());
+			return count;
+		}
+
+		/**
+		 * 获取可疑数据总数
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@GetMapping(value = {"getUncertainDataCount", ""})
+		@ResponseBody
+		public Integer getUncertainDataCount() {
+			return dataserviceDeviceDataService.getUncertainDataCount();
+		}
+
+		/**
+		 * 获取异常数据总数
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@GetMapping(value = {"getErrorDataCount", ""})
+		@ResponseBody
+		public Integer getErrorDataCount() {
+			return dataserviceDeviceDataService.getErrorDataCount();
+		}
+
+		/**
+		 * 获取所有设备数据质量情况
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@RequestMapping(value = {"getDeviceDataQualityCount", ""})
+		@ResponseBody
+		public List<DevicesDataQuality> getDeviceDataQualityCount(String dataDeviceId) {
+			List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
+			List<DevicesDataQuality> res = new ArrayList<>();
+			for (DataserviceDeviceStructure dataserviceDeviceStructure : list) {
+				DevicesDataQuality devicesDataQuality = new DevicesDataQuality();
+				Integer deviceNormalDataCount = dataserviceDeviceDataService.getDeviceNormalDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+				Integer deviceUncertainDataCount = dataserviceDeviceDataService.getDeviceUncertainDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+				Integer deviceErrorDataCount = dataserviceDeviceDataService.getDeviceErrorDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+				devicesDataQuality.setName(dataserviceDeviceStructure.getStructureDeviceId());
+				devicesDataQuality.setNormalCount(deviceNormalDataCount);
+				devicesDataQuality.setUncertainCount(deviceUncertainDataCount);
+				devicesDataQuality.setErrorCount(deviceErrorDataCount);
+				res.add(new DevicesDataQuality(devicesDataQuality));
+			}
+			return res;
+		}
 
 //	/**
 //	 * 获取某个设备的各项参数的数据质量情况
@@ -389,39 +411,39 @@ public class DataserviceDeviceDataController extends BaseController {
 //		return dataserviceDeviceDataConditionService.getParamConditionByDeviceId(dataDeviceId);
 //	}
 
-	/**
-	 * 获取3天天气数据
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@RequestMapping(value = {"getCurrentWeather", ""})
-	@ResponseBody
-	public List<String> getCurrentWeather() {
-		List<String> currentWeather = weatherService.getCurrentWeather();
-		return currentWeather;
-	}
+		/**
+		 * 获取3天天气数据
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@RequestMapping(value = {"getCurrentWeather", ""})
+		@ResponseBody
+		public List<String> getCurrentWeather() {
+			List<String> currentWeather = weatherService.getCurrentWeather();
+			return currentWeather;
+		}
 
 
-	/**
-	 * 获取未来24小时数据
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@RequestMapping(value = {"getFuture24hoursWeather", ""})
-	@ResponseBody
-	public List<WeatherService.DateTemp> getFuture24hoursWeather() {
-		List<WeatherService.DateTemp> future24hoursWeather = weatherService.getFuture24hoursWeather();
-		return future24hoursWeather;
-	}
+		/**
+		 * 获取未来24小时数据
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@RequestMapping(value = {"getFuture24hoursWeather", ""})
+		@ResponseBody
+		public List<WeatherService.DateTemp> getFuture24hoursWeather() {
+			List<WeatherService.DateTemp> future24hoursWeather = weatherService.getFuture24hoursWeather();
+			return future24hoursWeather;
+		}
 
 
-	/**
-	 * 获取预警数据
-	 */
-	@RequiresPermissions("dataservice:deviceData:view")
-	@RequestMapping(value = {"getWarning", ""})
-	@ResponseBody
-	public WeatherService.Alert getWarning() {
-		WeatherService.Alert warning = weatherService.getWarning();
-		return warning;
-	}
+		/**
+		 * 获取预警数据
+		 */
+		@RequiresPermissions("dataservice:deviceData:view")
+		@RequestMapping(value = {"getWarning", ""})
+		@ResponseBody
+		public WeatherService.Alert getWarning() {
+			WeatherService.Alert warning = weatherService.getWarning();
+			return warning;
+		}
 
 }

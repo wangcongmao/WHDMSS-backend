@@ -95,6 +95,8 @@ public class DataserviceDeviceDataEverydayCountsController extends BaseControlle
 
 	/**
 	 * 返回设备每日数据量列表
+	 * 这个是每次刷新实时从数据库中查询
+	 * SELECT counts_device_id, counts_date, counts_data_count  FROM dataservice_device_data_everyday_counts dddec
 	 */
 	@RequiresPermissions("dataservice:deviceDataEverydayCounts:view")
 	@GetMapping(value = "getAll")
