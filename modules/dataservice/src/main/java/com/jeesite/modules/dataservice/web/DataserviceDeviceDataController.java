@@ -1,13 +1,14 @@
 package com.jeesite.modules.dataservice.web;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import cn.hutool.core.util.StrUtil;
+import com.jeesite.common.lang.StringUtils;
 import com.jeesite.common.utils.excel.ExcelImport;
 import com.jeesite.modules.dataservice.entity.*;
 import com.jeesite.modules.dataservice.entity.support.ConditionType;
@@ -16,6 +17,8 @@ import com.jeesite.modules.dataservice.service.support.WeatherService;
 import lombok.Data;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -157,6 +160,26 @@ public class DataserviceDeviceDataController extends BaseController {
 		} else {
 			return dataserviceDeviceDataService.pageData(dataserviceDeviceData.getDataDeviceId(), pageData.getPage(), pageData.getPageSize());
 		}
+	}
+
+
+	/**
+	 * 根据经纬度获取水深
+	 * @param dataDeviceId 设备id
+	 * @param longitude 经度
+	 * @param latitude 维度
+	 * @return
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = "getDepth")
+	@ResponseBody
+	public Integer getDepth(String dataDeviceId, String longitude, String latitude) {
+		if (dataDeviceId.equals("") || latitude.equals("") || longitude.equals("")) {
+			return null;
+		}
+		Integer depth = dataserviceDeviceDataService.getDepth(dataDeviceId, longitude, latitude);
+
+		return depth;
 	}
 
 	/**
@@ -445,5 +468,74 @@ public class DataserviceDeviceDataController extends BaseController {
 			WeatherService.Alert warning = weatherService.getWarning();
 			return warning;
 		}
+
+
+//	@RequestMapping(value = "uploadExcel")
+//	@ResponseBody
+//	public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) {
+//		try {
+//			System.out.println(123);
+//			return null;
+//		} catch (Exception e) {
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("分析失败：" + e.getMessage());
+//		}
+//	}
+
+	/**
+	 * 上传Excel文件
+	 */
+//	@PostMapping(value = "uploadExcel")
+//	@RequiresPermissions("dataservice:deviceData:view")
+//	@ResponseBody
+//	public ResponseEntity<?> uploadExcel(@RequestParam("file") MultipartFile file) {
+//		try {
+//			// 检查文件是否为空
+//			if (file == null || file.isEmpty()) {
+//				return ResponseEntity.badRequest().body("请选择要上传的文件");
+//			}
+//
+//			// 检查文件类型
+//			String fileName = file.getOriginalFilename();
+//			if (fileName == null || !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
+//				return ResponseEntity.badRequest().body("只支持.xlsx或.xls格式的Excel文件");
+//			}
+//
+//			// 检查文件大小（10MB）
+//			if (file.getSize() > 10 * 1024 * 1024) {
+//				return ResponseEntity.badRequest().body("文件大小不能超过10MB");
+//			}
+//
+//			// 生成唯一文件名
+//			String newFileName = UUID.randomUUID().toString() + fileName.substring(fileName.lastIndexOf("."));
+//
+//			// 保存文件（这里需要根据实际情况修改保存路径）
+//			String uploadDir = "D:/upload/";
+//			File dir = new File(uploadDir);
+//			if (!dir.exists()) {
+//				dir.mkdirs();
+//			}
+//
+//			File dest = new File(uploadDir + newFileName);
+//			file.transferTo(dest);
+//
+//			// 返回成功信息
+//			return ResponseEntity.ok().body("文件上传成功：" + fileName);
+//
+//		} catch (IOException e) {
+//			logger.error("文件上传失败", e);
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//					.body("文件上传失败：" + e.getMessage());
+//		}
+//	}
+
+	/**
+	 * 测试接口
+	 */
+	@GetMapping(value = "test")
+	@RequiresPermissions("dataservice:deviceData:view")
+	@ResponseBody
+	public ResponseEntity<?> test() {
+		return ResponseEntity.ok().body("测试成功");
+	}
 
 }

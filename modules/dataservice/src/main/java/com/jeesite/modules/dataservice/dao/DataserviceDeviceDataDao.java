@@ -62,4 +62,16 @@ public interface DataserviceDeviceDataDao extends CrudDao<DataserviceDeviceData>
 
     @Select("select * from dataservice_device_data where data_device_id = #{qualityDeviceId}")
     List<DataserviceDeviceData> getAllByDeviceId(String qualityDeviceId);
+
+    /**
+     * 根据经纬度获取水深
+     * @param dataDeviceId 设备id
+     * @param longitude 经度
+     * @param latitude 维度
+     * @return
+     */
+    @Select("SELECT * FROM dataservice_device_data " +
+            "WHERE data_device_id = #{dataDeviceId} " +
+            "AND data_device_data LIKE CONCAT('%', #{longitude}, '%', #{latitude}, '%')")
+    DataserviceDeviceData getDepth(String dataDeviceId, String longitude, String latitude);
 }

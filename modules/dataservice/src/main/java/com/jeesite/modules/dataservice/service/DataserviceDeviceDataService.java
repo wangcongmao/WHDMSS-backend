@@ -183,4 +183,24 @@ public class DataserviceDeviceDataService extends CrudService<DataserviceDeviceD
 	public List<DataserviceDeviceData> getAllByDeviceId(String qualityDeviceId) {
 		return dataserviceDeviceDataDao.getAllByDeviceId(qualityDeviceId);
 	}
+
+	/**
+	 * 根据经纬度获取水深
+	 * @param dataDeviceId 设备id
+	 * @param longitude 经度
+	 * @param latitude 维度
+	 * @return
+	 */
+	public Integer getDepth(String dataDeviceId, String longitude, String latitude) {
+		DataserviceDeviceData dataserviceDeviceData = dataserviceDeviceDataDao.getDepth(dataDeviceId, longitude, latitude);
+		if (dataserviceDeviceData == null) {
+			return null;
+		}
+		String dataDeviceData = dataserviceDeviceData.getDataDeviceData();
+		// {流速: '1.2', 流向: '2.8'}
+		String substring = dataDeviceData.substring(dataDeviceData.indexOf("depth: '") + 8, dataDeviceData.length() - 2);
+		int i = Integer.parseInt(substring);
+
+		return i;
+	}
 }

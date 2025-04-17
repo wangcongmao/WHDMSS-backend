@@ -334,4 +334,20 @@ public class DataservicePaltformDeviceController extends BaseController {
 		return all;
 	}
 
+	/**
+	 * 根据id查询
+	 * @param device_name
+	 * @return
+	 */
+	@RequiresPermissions("dataservice:paltformDevice:view")
+	@RequestMapping(value = {"getById", ""})
+	public DataservicePaltformDevice getById(String device_name) {
+		if (device_name == null || device_name.equals("")) {
+			return null;
+		}
+		DataservicePaltformDevice dataservicePaltformDevice = dataservicePaltformDeviceService.getById(device_name);
+		return dataservicePaltformDevice;
+	}
+
+
 }

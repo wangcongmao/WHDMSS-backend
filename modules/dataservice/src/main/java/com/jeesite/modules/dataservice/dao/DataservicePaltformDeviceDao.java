@@ -19,4 +19,6 @@ public interface DataservicePaltformDeviceDao extends TreeDao<DataservicePaltfor
     @Select("SELECT * FROM dataservice_paltform_device")
     List<DataservicePaltformDevice> getAll();
 
+    @Select("SELECT * FROM dataservice_paltform_device where device_name = #{deviceName}")
+    DataservicePaltformDevice getById(String deviceName);
 }

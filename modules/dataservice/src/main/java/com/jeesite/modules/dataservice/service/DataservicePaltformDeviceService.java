@@ -100,5 +100,8 @@ public class DataservicePaltformDeviceService extends TreeService<DataservicePal
 	public List<DataservicePaltformDevice> getAll() {
 		return dataservicePaltformDeviceDao.getAll();
 	}
-	
+
+    public DataservicePaltformDevice getById(String deviceName) {
+		return dataservicePaltformDeviceDao.getById(deviceName);
+    }
 }
