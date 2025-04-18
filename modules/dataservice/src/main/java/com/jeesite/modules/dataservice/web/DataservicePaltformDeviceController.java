@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
+import com.jeesite.modules.dataservice.dao.DataserviceDeviceChartPositionDao;
+import com.jeesite.modules.dataservice.dao.DataservicePaltformDeviceDao;
 import com.jeesite.modules.dataservice.entity.*;
 import com.jeesite.modules.dataservice.service.*;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -51,6 +53,12 @@ public class DataservicePaltformDeviceController extends BaseController {
 
 	@Resource
 	private DataserviceDeviceDataService dataserviceDeviceDataService;
+
+	@Resource
+	DataserviceDeviceChartPositionDao dataserviceDeviceChartPositionDao;
+
+	@Resource
+	DataservicePaltformDeviceDao dataservicePaltformDeviceDao;
 
 	/**
 	 * 获取数据
@@ -169,21 +177,28 @@ public class DataservicePaltformDeviceController extends BaseController {
 		String beforeName = "";
 		if (dataservicePaltformDevice.getIsNewRecord() == false) {
 			beforeName = dataservicePaltformDevice1.getDeviceName();
+			dataserviceDeviceChartPositionDao.updateName(dataservicePaltformDevice.getDeviceName(), beforeName);
+		} else {
+			dataserviceDeviceChartPositionDao.insertPosition(dataservicePaltformDevice.getDeviceName());
 		}
 		String newName = dataservicePaltformDevice.getDeviceName();
 
 		// 如果修改名称的话修改数据结构的名
 		if (dataservicePaltformDevice.getIsNewRecord() == false) {
 			DataserviceDeviceStructure structureDeviceId = dataserviceDeviceStructureService.getByStructureDeviceId(beforeName);
-			structureDeviceId.setStructureDeviceId(newName);
-			dataserviceDeviceStructureService.save(structureDeviceId);
+			if (structureDeviceId != null) {
+				structureDeviceId.setStructureDeviceId(newName);
+				dataserviceDeviceStructureService.save(structureDeviceId);
+			}
 		}
 		// 如果修改名称的话修改质量规则名
 		if (dataservicePaltformDevice.getIsNewRecord() == false) {
 			List<DataserviceQualityRule> ruleByDeviceId = dataserviceQualityRuleService.getRuleByDeviceId(beforeName);
-			for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
-				dataserviceQualityRule.setQualityDeviceId(newName);
-				dataserviceQualityRuleService.save(dataserviceQualityRule);
+			if (ruleByDeviceId != null && ruleByDeviceId.size() > 0) {
+				for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
+					dataserviceQualityRule.setQualityDeviceId(newName);
+					dataserviceQualityRuleService.save(dataserviceQualityRule);
+				}
 			}
 		}
 		// 如果修改名称的话修改每天统计名
@@ -191,9 +206,11 @@ public class DataservicePaltformDeviceController extends BaseController {
 			DataserviceDeviceDataEverydayCounts dataserviceDeviceDataEverydayCounts = new DataserviceDeviceDataEverydayCounts();
 			dataserviceDeviceDataEverydayCounts.setCountsDeviceId(beforeName);
 			List<DataserviceDeviceDataEverydayCounts> list = dataserviceDeviceDataEverydayCountsService.findList(dataserviceDeviceDataEverydayCounts);
-			for (DataserviceDeviceDataEverydayCounts deviceDataEverydayCounts : list) {
-				deviceDataEverydayCounts.setCountsDeviceId(newName);
-				dataserviceDeviceDataEverydayCountsService.save(deviceDataEverydayCounts);
+			if (list != null && list.size() > 0) {
+				for (DataserviceDeviceDataEverydayCounts deviceDataEverydayCounts : list) {
+					deviceDataEverydayCounts.setCountsDeviceId(newName);
+					dataserviceDeviceDataEverydayCountsService.save(deviceDataEverydayCounts);
+				}
 			}
 		}
 		// 修改数据状态名
@@ -201,17 +218,21 @@ public class DataservicePaltformDeviceController extends BaseController {
 			DataserviceDeviceDataCondition dataserviceDeviceDataCondition = new DataserviceDeviceDataCondition();
 			dataserviceDeviceDataCondition.setStructureDeviceId(beforeName);
 			List<DataserviceDeviceDataCondition> list = dataserviceDeviceDataConditionService.findList(dataserviceDeviceDataCondition);
-			for (DataserviceDeviceDataCondition deviceDataCondition : list) {
-				deviceDataCondition.setStructureDeviceId(newName);
-				dataserviceDeviceDataConditionService.save(deviceDataCondition);
+			if (list != null && list.size() > 0) {
+				for (DataserviceDeviceDataCondition deviceDataCondition : list) {
+					deviceDataCondition.setStructureDeviceId(newName);
+					dataserviceDeviceDataConditionService.save(deviceDataCondition);
+				}
 			}
 		}
 		// 修改数据名
 		if (dataservicePaltformDevice.getIsNewRecord() == false) {
 			List<DataserviceDeviceData> deviceDataByDeviceId = dataserviceDeviceDataService.getDeviceDataByDeviceId(beforeName);
-			for (DataserviceDeviceData dataserviceDeviceData : deviceDataByDeviceId) {
-				dataserviceDeviceData.setDataDeviceId(newName);
-				dataserviceDeviceDataService.save(dataserviceDeviceData);
+			if (deviceDataByDeviceId != null) {
+				for (DataserviceDeviceData dataserviceDeviceData : deviceDataByDeviceId) {
+					dataserviceDeviceData.setDataDeviceId(newName);
+					dataserviceDeviceDataService.save(dataserviceDeviceData);
+				}
 			}
 		}
 		return renderResult(Global.TRUE, text("保存平台与设备成功！"));
@@ -227,6 +248,8 @@ public class DataservicePaltformDeviceController extends BaseController {
 		DataservicePaltformDevice dataservicePaltformDevice1 = dataservicePaltformDeviceService.get(dataservicePaltformDevice.getId());
 		String beforeName = dataservicePaltformDevice1.getDeviceName();
 		dataservicePaltformDeviceService.delete(dataservicePaltformDevice);
+
+		dataserviceDeviceChartPositionDao.deleteByDeviceName(dataservicePaltformDevice.getDeviceName());
 		// 删除设备，要求，1.删除设备 2. 删除设备数据 3.删除设备数据结构 4.删除设备每天数据质量 5.删除设备各字段数据质量
 		// 如果修改名称的话修改数据结构的名
 		if (dataservicePaltformDevice.getId() != null) {
