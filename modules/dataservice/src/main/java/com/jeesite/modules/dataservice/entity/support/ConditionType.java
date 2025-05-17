@@ -6,7 +6,9 @@ public enum ConditionType {
 
     NORMAL("0", "正常"),
     SUSPECTED("5", "可疑"),
-    ABNORMAL("6", "异常");
+    ABNORMAL("6", "异常"),
+
+    DISMATCH("7", "数据与结构不匹配");
 
     private final String code;
     private final String description;

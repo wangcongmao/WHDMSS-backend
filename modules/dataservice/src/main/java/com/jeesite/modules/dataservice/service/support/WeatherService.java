@@ -68,7 +68,7 @@ public class WeatherService {
             double avgWindSpeed = wind.getJSONObject("avg").getDouble("speed");
 
             // 将结果格式化为中文字符串
-            String weatherSummary = String.format( whichDay + "白天%.2f°C，夜晚%.2f°C，风速%.2f m/s",
+            String weatherSummary = String.format( whichDay + "白天%.2f°C，夜晚%.2f°C，风速%.2f km/h",
                     dayAvgTemp, nightAvgTemp, avgWindSpeed);  // 假设全天平均温度等于白天平均温度
 
             weatherSummaryList.add(weatherSummary);

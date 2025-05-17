@@ -2,23 +2,31 @@ package com.jeesite.modules.dataservice.web;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.context.AnalysisContext;
+import com.alibaba.excel.event.AnalysisEventListener;
+import com.alibaba.excel.read.listener.PageReadListener;
 import com.jeesite.common.lang.StringUtils;
 import com.jeesite.common.utils.excel.ExcelImport;
 import com.jeesite.modules.dataservice.entity.*;
 import com.jeesite.modules.dataservice.entity.support.ConditionType;
+import com.jeesite.modules.dataservice.entity.support.TidalData;
 import com.jeesite.modules.dataservice.service.*;
+import com.jeesite.modules.dataservice.service.support.TidalDataListener;
 import com.jeesite.modules.dataservice.service.support.WeatherService;
 import lombok.Data;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -30,6 +38,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 /**
  * deviceDataController
@@ -56,6 +67,9 @@ public class DataserviceDeviceDataController extends BaseController {
 
 	@Resource
 	private WeatherService weatherService;
+
+	@Autowired
+	private SimpMessagingTemplate messagingTemplate;
 
 	/**
 	 * 获取数据
@@ -192,9 +206,16 @@ public class DataserviceDeviceDataController extends BaseController {
 		if (pageData.getOffSite() == null || pageData.getPageSize() == null) {
 			return null;
 		}
+		messagingTemplate.convertAndSend("/topic/notify", "任务开始");
+
 		return dataserviceDeviceDataService.pageData(pageData.getOffSite(), pageData.getPageSize());
 	}
 
+	/**
+	 * 根据设备id获取所有数据
+	 * @param qualityDeviceId
+	 * @return
+	 */
 	public List<DataserviceDeviceData> getAllByDeviceId(String qualityDeviceId) {
 		return dataserviceDeviceDataService.getAllByDeviceId(qualityDeviceId);
 	}
@@ -220,7 +241,7 @@ public class DataserviceDeviceDataController extends BaseController {
 	/**
 	 * 保存数据
 	 */
-	@RequiresPermissions("dataservice:deviceData:edit")
+//	@RequiresPermissions("dataservice:deviceData:edit")
 	@PostMapping(value = "save")
 	@ResponseBody
 	public String save(@Validated DataserviceDeviceData dataserviceDeviceData) {
@@ -321,104 +342,106 @@ public class DataserviceDeviceDataController extends BaseController {
 				}
 			}
 		} catch (Exception e) {
-			return "params error, StructureData don't match Device Data Structure";
-		}
-
-			// 所有规则验证通过后保存数据
+			dataserviceDeviceData.setStatus(ConditionType.DISMATCH.getCode());
 			dataserviceDeviceDataService.save(dataserviceDeviceData);
-			return renderResult(Global.TRUE, text("保存deviceData成功！"));
+			return renderResult(Global.TRUE, text("保存deviceData成功，但数据不符合该设备数据结构"));
 		}
 
-		private String extractValue(String input, String key) {
-			String startDelimiter = key + "\":\"";  // 找到对应键的开始部分
-			int startIndex = input.indexOf(startDelimiter);
-			if (startIndex == -1) return "";  // 如果找不到，返回空字符串
+		// 所有规则验证通过后保存数据
+		dataserviceDeviceDataService.save(dataserviceDeviceData);
+		return renderResult(Global.TRUE, text("保存deviceData成功！"));
+	}
 
-			int endIndex = input.indexOf("\"", startIndex + startDelimiter.length());  // 找到值的结束部分
-			if (endIndex == -1) return "";  // 如果没有找到结束位置，返回空字符串
+	private String extractValue(String input, String key) {
+		String startDelimiter = key + "\":\"";  // 找到对应键的开始部分
+		int startIndex = input.indexOf(startDelimiter);
+		if (startIndex == -1) return "";  // 如果找不到，返回空字符串
 
-			// 返回提取的值
-			return input.substring(startIndex + startDelimiter.length(), endIndex);
+		int endIndex = input.indexOf("\"", startIndex + startDelimiter.length());  // 找到值的结束部分
+		if (endIndex == -1) return "";  // 如果没有找到结束位置，返回空字符串
+
+		// 返回提取的值
+		return input.substring(startIndex + startDelimiter.length(), endIndex);
+	}
+
+	/**
+	 * 删除数据
+	 * 默认不能删数据，此接口未使用，若要使用删除接口，需要添加删除数据时对质量数据数量的修改
+	 */
+	@RequiresPermissions("dataservice:deviceData:edit")
+	@RequestMapping(value = "delete")
+	@ResponseBody
+	public String delete(DataserviceDeviceData dataserviceDeviceData) {
+		dataserviceDeviceDataService.delete(dataserviceDeviceData);
+		return renderResult(Global.TRUE, text("删除deviceData成功！"));
+	}
+
+	/**
+	 * 获取正常数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getNormalDataCount"})
+	@ResponseBody
+	public Integer getNormalDataCount() {
+		return dataserviceDeviceDataService.getNormalDataCount();
+	}
+
+	/**
+	 * 获取数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getDataCount"})
+	@ResponseBody
+	public Integer getDataCount(DataserviceDeviceData dataserviceDeviceData) {
+		if (dataserviceDeviceData == null || dataserviceDeviceData.getDataDeviceId() == null) {
+			return 0;
 		}
+		Integer count = dataserviceDeviceDataService.getDataCount(dataserviceDeviceData.getDataDeviceId());
+		return count;
+	}
 
-		/**
-		 * 删除数据
-		 * 默认不能删数据，此接口未使用，若要使用删除接口，需要添加删除数据时对质量数据数量的修改
-		 */
-		@RequiresPermissions("dataservice:deviceData:edit")
-		@RequestMapping(value = "delete")
-		@ResponseBody
-		public String delete(DataserviceDeviceData dataserviceDeviceData) {
-			dataserviceDeviceDataService.delete(dataserviceDeviceData);
-			return renderResult(Global.TRUE, text("删除deviceData成功！"));
-		}
+	/**
+	 * 获取可疑数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getUncertainDataCount", ""})
+	@ResponseBody
+	public Integer getUncertainDataCount() {
+		return dataserviceDeviceDataService.getUncertainDataCount();
+	}
 
-		/**
-		 * 获取正常数据总数
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@GetMapping(value = {"getNormalDataCount"})
-		@ResponseBody
-		public Integer getNormalDataCount() {
-			return dataserviceDeviceDataService.getNormalDataCount();
-		}
+	/**
+	 * 获取异常数据总数
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@GetMapping(value = {"getErrorDataCount", ""})
+	@ResponseBody
+	public Integer getErrorDataCount() {
+		return dataserviceDeviceDataService.getErrorDataCount();
+	}
 
-		/**
-		 * 获取数据总数
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@GetMapping(value = {"getDataCount"})
-		@ResponseBody
-		public Integer getDataCount(DataserviceDeviceData dataserviceDeviceData) {
-			if (dataserviceDeviceData == null || dataserviceDeviceData.getDataDeviceId() == null) {
-				return 0;
-			}
-			Integer count = dataserviceDeviceDataService.getDataCount(dataserviceDeviceData.getDataDeviceId());
-			return count;
+	/**
+	 * 获取所有设备数据质量情况
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getDeviceDataQualityCount", ""})
+	@ResponseBody
+	public List<DevicesDataQuality> getDeviceDataQualityCount(String dataDeviceId) {
+		List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
+		List<DevicesDataQuality> res = new ArrayList<>();
+		for (DataserviceDeviceStructure dataserviceDeviceStructure : list) {
+			DevicesDataQuality devicesDataQuality = new DevicesDataQuality();
+			Integer deviceNormalDataCount = dataserviceDeviceDataService.getDeviceNormalDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+			Integer deviceUncertainDataCount = dataserviceDeviceDataService.getDeviceUncertainDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+			Integer deviceErrorDataCount = dataserviceDeviceDataService.getDeviceErrorDataCount(dataserviceDeviceStructure.getStructureDeviceId());
+			devicesDataQuality.setName(dataserviceDeviceStructure.getStructureDeviceId());
+			devicesDataQuality.setNormalCount(deviceNormalDataCount);
+			devicesDataQuality.setUncertainCount(deviceUncertainDataCount);
+			devicesDataQuality.setErrorCount(deviceErrorDataCount);
+			res.add(new DevicesDataQuality(devicesDataQuality));
 		}
-
-		/**
-		 * 获取可疑数据总数
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@GetMapping(value = {"getUncertainDataCount", ""})
-		@ResponseBody
-		public Integer getUncertainDataCount() {
-			return dataserviceDeviceDataService.getUncertainDataCount();
-		}
-
-		/**
-		 * 获取异常数据总数
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@GetMapping(value = {"getErrorDataCount", ""})
-		@ResponseBody
-		public Integer getErrorDataCount() {
-			return dataserviceDeviceDataService.getErrorDataCount();
-		}
-
-		/**
-		 * 获取所有设备数据质量情况
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@RequestMapping(value = {"getDeviceDataQualityCount", ""})
-		@ResponseBody
-		public List<DevicesDataQuality> getDeviceDataQualityCount(String dataDeviceId) {
-			List<DataserviceDeviceStructure> list = dataserviceDeviceStructureService.list();
-			List<DevicesDataQuality> res = new ArrayList<>();
-			for (DataserviceDeviceStructure dataserviceDeviceStructure : list) {
-				DevicesDataQuality devicesDataQuality = new DevicesDataQuality();
-				Integer deviceNormalDataCount = dataserviceDeviceDataService.getDeviceNormalDataCount(dataserviceDeviceStructure.getStructureDeviceId());
-				Integer deviceUncertainDataCount = dataserviceDeviceDataService.getDeviceUncertainDataCount(dataserviceDeviceStructure.getStructureDeviceId());
-				Integer deviceErrorDataCount = dataserviceDeviceDataService.getDeviceErrorDataCount(dataserviceDeviceStructure.getStructureDeviceId());
-				devicesDataQuality.setName(dataserviceDeviceStructure.getStructureDeviceId());
-				devicesDataQuality.setNormalCount(deviceNormalDataCount);
-				devicesDataQuality.setUncertainCount(deviceUncertainDataCount);
-				devicesDataQuality.setErrorCount(deviceErrorDataCount);
-				res.add(new DevicesDataQuality(devicesDataQuality));
-			}
-			return res;
-		}
+		return res;
+	}
 
 //	/**
 //	 * 获取某个设备的各项参数的数据质量情况
@@ -434,40 +457,40 @@ public class DataserviceDeviceDataController extends BaseController {
 //		return dataserviceDeviceDataConditionService.getParamConditionByDeviceId(dataDeviceId);
 //	}
 
-		/**
-		 * 获取3天天气数据
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@RequestMapping(value = {"getCurrentWeather", ""})
-		@ResponseBody
-		public List<String> getCurrentWeather() {
-			List<String> currentWeather = weatherService.getCurrentWeather();
-			return currentWeather;
-		}
+	/**
+	 * 获取3天天气数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getCurrentWeather", ""})
+	@ResponseBody
+	public List<String> getCurrentWeather() {
+		List<String> currentWeather = weatherService.getCurrentWeather();
+		return currentWeather;
+	}
 
 
-		/**
-		 * 获取未来24小时数据
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@RequestMapping(value = {"getFuture24hoursWeather", ""})
-		@ResponseBody
-		public List<WeatherService.DateTemp> getFuture24hoursWeather() {
-			List<WeatherService.DateTemp> future24hoursWeather = weatherService.getFuture24hoursWeather();
-			return future24hoursWeather;
-		}
+	/**
+	 * 获取未来24小时数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getFuture24hoursWeather", ""})
+	@ResponseBody
+	public List<WeatherService.DateTemp> getFuture24hoursWeather() {
+		List<WeatherService.DateTemp> future24hoursWeather = weatherService.getFuture24hoursWeather();
+		return future24hoursWeather;
+	}
 
 
-		/**
-		 * 获取预警数据
-		 */
-		@RequiresPermissions("dataservice:deviceData:view")
-		@RequestMapping(value = {"getWarning", ""})
-		@ResponseBody
-		public WeatherService.Alert getWarning() {
-			WeatherService.Alert warning = weatherService.getWarning();
-			return warning;
-		}
+	/**
+	 * 获取预警数据
+	 */
+	@RequiresPermissions("dataservice:deviceData:view")
+	@RequestMapping(value = {"getWarning", ""})
+	@ResponseBody
+	public WeatherService.Alert getWarning() {
+		WeatherService.Alert warning = weatherService.getWarning();
+		return warning;
+	}
 
 
 //	@RequestMapping(value = "uploadExcel")
@@ -527,6 +550,139 @@ public class DataserviceDeviceDataController extends BaseController {
 //					.body("文件上传失败：" + e.getMessage());
 //		}
 //	}
+
+    /*@PostMapping("/uploadSurveyDataExcel")
+	@ResponseBody
+	public ResponseEntity<List<String>> uploadSurveyDataExcel(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("deviceName") String deviceName) {
+		try {
+			// 打印接收到的参数
+			System.out.println("文件名: " + file.getOriginalFilename());
+			System.out.println("文件大小: " + file.getSize());
+			System.out.println("文件类型: " + file.getContentType());
+			System.out.println("装置名称: " + deviceName);
+
+			List<String> pTheorys = new ArrayList<>();
+
+			InputStream inputStream = file.getInputStream();
+			TidalDataListener listener = new TidalDataListener();
+
+			EasyExcel.read(inputStream, TidalData.class, listener)
+					.sheet()
+					.doRead();
+
+			List<TidalData> tidalDataList = listener.getDataList();
+
+			// 计算理论功率 + 效率
+			double totalEfficiency = 0;
+			int validCount = 0;
+
+			for (TidalData data : tidalDataList ) {
+				if (data.getP() == null || data.getPflux() == null || data.getV() == null || data.getActualPower() == null) {
+					continue; // 跳过空行或无效行
+				}
+				double pTheory = 0.5 * data.getP() * data.getV() * data.getV() * data.getV(); // kW/m
+				pTheorys.add(pTheory+"");
+
+				validCount++;
+			}
+
+			double avgEfficiency = validCount > 0 ? totalEfficiency / validCount : 0;
+
+			return ResponseEntity.ok(pTheorys);
+
+			// 这里可以添加文件处理逻辑
+			// 例如：保存文件、解析Excel等
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ArrayList<>());
+		}
+	}*/
+	@PostMapping("/uploadSurveyDataExcel")
+	@ResponseBody
+	public ResponseEntity<List<String>> uploadSurveyDataExcel(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("deviceName") String deviceName) {
+
+		try {
+			System.out.println("文件名: " + file.getOriginalFilename());
+			System.out.println("装置名称: " + deviceName);
+
+			InputStream inputStream = file.getInputStream();
+			List<String> jsonList = new ArrayList<>();
+			ObjectMapper objectMapper = new ObjectMapper();
+
+			EasyExcel.read(inputStream, new AnalysisEventListener<Map<Integer, String>>() {
+
+				private List<String> headers = new ArrayList<>();
+
+				@Override
+				public void invoke(Map<Integer, String> rowData, AnalysisContext context) {
+					// 第一行：存表头
+					if (context.readRowHolder().getRowIndex() == 0) {
+						headers.clear();
+						for (int i = 0; i < rowData.size(); i++) {
+							headers.add(rowData.get(i));
+						}
+						return;
+					}
+
+					// 后续数据行：构造 Map<String, String>
+					Map<String, String> namedRow = new LinkedHashMap<>();
+					for (int i = 0; i < headers.size(); i++) {
+						namedRow.put(headers.get(i), rowData.get(i));
+					}
+
+					try {
+						String jsStyle = toJsObjectStyle(namedRow);
+						jsonList.add(jsStyle);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void doAfterAllAnalysed(AnalysisContext context) {}
+			}).sheet().headRowNumber(0).doRead();  // 👈 注意这里是 0，因为我们手动处理表头
+
+			for (String s : jsonList) {
+				DataserviceDeviceData dataserviceDeviceData = new DataserviceDeviceData();
+				dataserviceDeviceData.setDataDeviceData(s);
+				dataserviceDeviceData.setDataDeviceId(deviceName);
+				save(dataserviceDeviceData);
+			}
+
+			return ResponseEntity.ok(jsonList);
+			// {"时间":"2025/4/9 08:00:00","Hs":"2.1","Te":"7.8","实际功率":"10.5"}
+			// {流向: '1.1', 流速: '1.7', 温度: '1.2', 气压: '1.6', 气温: '1.2', 相对湿度: '1.5', PH: '0.8', 风速: '2.0'}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+		}
+	}
+
+	private String toJsObjectStyle(Map<String, String> map) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+		int i = 0;
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			sb.append(entry.getKey()) // key 不加引号
+					.append(": ")
+					.append("'").append(entry.getValue()).append("'"); // value 单引号
+
+			if (i < map.size() - 1) {
+				sb.append(", ");
+			}
+			i++;
+		}
+		sb.append("}");
+		return sb.toString();
+	}
+
 
 	/**
 	 * 测试接口
