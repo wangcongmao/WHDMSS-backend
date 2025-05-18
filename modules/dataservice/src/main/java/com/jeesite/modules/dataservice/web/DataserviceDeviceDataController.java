@@ -251,6 +251,9 @@ public class DataserviceDeviceDataController extends BaseController {
 		if (dataserviceDeviceData.getDataDeviceId() == null) {
 			return "params error, DataDeviceId can't be null";
 		}
+		if (dataserviceDeviceData.getDataTestDate() == null) {
+			dataserviceDeviceData.setDataTestDate(new Date());
+		}
 		DataserviceDeviceStructure structureDevice = dataserviceDeviceStructureService.getByStructureDeviceId(dataserviceDeviceData.getDataDeviceId());
 		if (structureDevice.getStructureData() == null) {
 			return "params error, StructureData can't be null";
@@ -280,6 +283,8 @@ public class DataserviceDeviceDataController extends BaseController {
 				String[] strings1 = string.split(": ");
 				data.put(strings1[0], strings1[1].substring(1, strings1[1].length() - 1));
 			}
+
+
 
 			// 遍历每条质量规则进行验证
 			for (DataserviceQualityRule dataserviceQualityRule : ruleByDeviceId) {
