@@ -11,7 +11,7 @@
 	</parent>
 	
 	<artifactId>jeesite-web</artifactId>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	
 	<description>Web 服务，也可为分离端提供接口服务</description>
 	

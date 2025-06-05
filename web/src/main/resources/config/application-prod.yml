@@ -14,8 +14,8 @@ jdbc:
   type: mysql
   driver: com.mysql.cj.jdbc.Driver
   url: jdbc:mysql://192.168.56.1:3306/jeesite?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=Asia/Shanghai
-  username: jeesite
-  password: jeesite
+  username: root
+  password: 123456
   testSql: SELECT 1
 
   # 数据库连接池配置
